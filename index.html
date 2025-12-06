@@ -166,7 +166,15 @@
                 </div>
                 
                 <!-- Dashboard View -->
-                <main id="dashboard-view" class="space-y-6">
+                <main id="dashboard-view" class="space-y-6"></main>
+                    <!-- 📢 佈告欄區塊 -->
+                    <div class="card p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-2 border-indigo-200 dark:border-indigo-700">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">📢 最新公告</h2>
+                        <div id="announcements-empty" class="text-center text-gray-500 dark:text-gray-400 py-4">
+                            目前沒有公告
+                        </div>
+                        <div id="announcements-list"></div>
+                    </div>
                     <!-- 打卡專區（保持不變）-->
                     <div class="card p-6">
                         <h2 data-i18n="PUNCH_SECTION_TITLE"
@@ -668,6 +676,28 @@
                 </section>
                 <!-- Admin View -->
                 <section id="admin-view" class="space-y-6" style="display: none;">
+                    <!-- 📢 公告管理 -->
+                    <div class="card p-6">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-2">📢 公告管理</h2>
+                        
+                        <div class="space-y-3 mb-4">
+                            <input type="text" id="announcement-title" placeholder="公告標題" maxlength="100"
+                                class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                            <textarea id="announcement-content" placeholder="公告內容" rows="3" maxlength="500"
+                                    class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"></textarea>
+                            <select id="announcement-priority" 
+                                    class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white">
+                                <option value="normal">🔵 一般</option>
+                                <option value="medium">🟡 中等</option>
+                                <option value="high">🔴 重要</option>
+                            </select>
+                            <button id="submit-announcement-btn" class="w-full py-3 px-4 rounded-lg font-bold btn-primary">
+                                發布公告
+                            </button>
+                        </div>
+                        
+                        <div id="admin-announcements-list" class="space-y-3"></div>
+                    </div>
                     <div class="card p-6">
                         <h2 data-i18n="PENDING_REQUESTS_TITLE" class="text-xl font-bold text-gray-800 dark:text-white mb-1">待審核請求</h2>
                         <p data-i18n="PENDING_REQUESTS_DESCRIPTION" class="text-gray-500 dark:text-gray-400 mb-4">請處理員工提出的補打卡或虛擬卡請求。</p>

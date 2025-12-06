@@ -1501,6 +1501,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             fetchAndRenderReviewRequests();
             loadPendingOvertimeRequests();
             loadPendingLeaveRequests();
+            displayAdminAnnouncements();
         } else if (tabId === 'overtime-view') {
             initOvertimeTab();
         } else if (tabId === 'leave-view') {
@@ -2223,3 +2224,122 @@ function clearShiftCache() {
     todayShiftCache = null;
     weekShiftCache = null;
 }
+
+// ==================== 📢 佈告欄功能 ====================
+
+function loadAnnouncements() {
+    const data = localStorage.getItem('announcements');
+    return data ? JSON.parse(data) : [];
+}
+
+function saveAnnouncements(announcements) {
+    localStorage.setItem('announcements', JSON.stringify(announcements));
+}
+
+function displayAnnouncements() {
+    const list = document.getElementById('announcements-list');
+    const empty = document.getElementById('announcements-empty');
+    const announcements = loadAnnouncements().slice(0, 3);
+    
+    if (!list) return;
+    
+    if (announcements.length === 0) {
+        if (empty) empty.style.display = 'block';
+        list.innerHTML = '';
+        return;
+    }
+    
+    if (empty) empty.style.display = 'none';
+    list.innerHTML = '';
+    
+    announcements.forEach(a => {
+        const icon = a.priority === 'high' ? '🔴' : a.priority === 'medium' ? '🟡' : '🔵';
+        const div = document.createElement('div');
+        div.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 mb-3';
+        div.innerHTML = `
+            <div class="flex items-start justify-between mb-2">
+                <h3 class="font-bold text-gray-800 dark:text-white">${icon} ${a.title}</h3>
+                <span class="text-xs text-gray-500">${new Date(a.createdAt).toLocaleDateString()}</span>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300">${a.content}</p>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function displayAdminAnnouncements() {
+    const list = document.getElementById('admin-announcements-list');
+    if (!list) return;
+    
+    const announcements = loadAnnouncements();
+    list.innerHTML = '';
+    
+    announcements.forEach(a => {
+        const div = document.createElement('div');
+        div.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700';
+        div.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div class="flex-1">
+                    <h3 class="font-bold text-gray-800 dark:text-white mb-1">${a.title}</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">${a.content}</p>
+                    <span class="text-xs text-gray-500">${new Date(a.createdAt).toLocaleString()}</span>
+                </div>
+                <button class="px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded ml-4" 
+                        onclick="deleteAnnouncement('${a.id}')">
+                    刪除
+                </button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function deleteAnnouncement(id) {
+    if (!confirm('確定要刪除這則公告嗎？')) return;
+    let announcements = loadAnnouncements();
+    announcements = announcements.filter(a => a.id !== id);
+    saveAnnouncements(announcements);
+    displayAdminAnnouncements();
+    displayAnnouncements();
+    showNotification('公告已刪除', 'success');
+}
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+    // 顯示公告
+    displayAnnouncements();
+    
+    // 管理員發布公告
+    const submitBtn = document.getElementById('submit-announcement-btn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', () => {
+            const title = document.getElementById('announcement-title').value.trim();
+            const content = document.getElementById('announcement-content').value.trim();
+            const priority = document.getElementById('announcement-priority').value;
+            
+            if (!title || !content) {
+                showNotification('標題和內容不可為空', 'error');
+                return;
+            }
+            
+            const announcements = loadAnnouncements();
+            announcements.unshift({
+                id: Date.now().toString(),
+                title,
+                content,
+                priority,
+                createdAt: new Date().toISOString()
+            });
+            
+            saveAnnouncements(announcements);
+            
+            document.getElementById('announcement-title').value = '';
+            document.getElementById('announcement-content').value = '';
+            document.getElementById('announcement-priority').value = 'normal';
+            
+            displayAdminAnnouncements();
+            displayAnnouncements();
+            showNotification('公告已發布！', 'success');
+        });
+    }
+});
