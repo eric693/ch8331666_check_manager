@@ -416,15 +416,6 @@ async function ensureLogin() {
                     if (res.user.dept === "管理員") {
                         console.log('👑 管理員身份:', res.user.dept);
                         document.getElementById('tab-admin-btn').style.display = 'block';
-                        
-                        // 👇 隱藏管理員不需要的功能
-                        const announcementsCard = document.querySelector('#dashboard-view .card:first-child');
-                        const punchCard = document.querySelector('#dashboard-view .card:nth-child(2)');
-                        const abnormalSection = document.getElementById('abnormal-records-section');
-                        
-                        if (announcementsCard) announcementsCard.style.display = 'none';
-                        if (punchCard) punchCard.style.display = 'none';
-                        if (abnormalSection) abnormalSection.style.display = 'none';
                     }
                     
                     // 設定使用者資訊
