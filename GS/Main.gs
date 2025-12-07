@@ -505,15 +505,6 @@ function handleSetEmployeeSalaryTW(params) {
     Logger.log('   - 團保費用: ' + salaryData.groupInsurance);
     Logger.log('   - 其他扣款: ' + salaryData.otherDeductions);
     
-    // 驗證最低薪資
-    if (salaryData.salaryType === '月薪' && salaryData.baseSalary < 28590) {
-      return { ok: false, msg: "月薪不得低於 28,590 元（2025年基本工資）" };
-    }
-    
-    if (salaryData.salaryType === '時薪' && salaryData.baseSalary < 190) {
-      return { ok: false, msg: "時薪不得低於 190 元（2025年基本工資）" };
-    }
-    
     Logger.log('💾 開始儲存薪資設定...');
     
     // 呼叫核心函數

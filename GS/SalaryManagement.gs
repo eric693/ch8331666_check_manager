@@ -6,8 +6,8 @@ const SHEET_SALARY_CONFIG_ENHANCED = "員工薪資設定";
 const SHEET_MONTHLY_SALARY_ENHANCED = "月薪資記錄";
 
 // 台灣法定最低薪資（2025）
-const MIN_MONTHLY_SALARY = 28590;  // 月薪
-const MIN_HOURLY_SALARY = 190;     // 時薪
+// const MIN_MONTHLY_SALARY = 28590;  // 月薪
+// const MIN_HOURLY_SALARY = 190;     // 時薪
 
 // 加班費率
 const OVERTIME_RATES = {
@@ -124,15 +124,6 @@ function setEmployeeSalaryTW(salaryData) {
     // 驗證必填欄位
     if (!salaryData.employeeId || !salaryData.employeeName || !salaryData.baseSalary || salaryData.baseSalary <= 0) {
       return { success: false, message: "缺少必填欄位或基本薪資無效" };
-    }
-    
-    // 驗證最低薪資
-    if (salaryData.salaryType === '月薪' && salaryData.baseSalary < MIN_MONTHLY_SALARY) {
-      return { success: false, message: `月薪不得低於 ${MIN_MONTHLY_SALARY} 元` };
-    }
-    
-    if (salaryData.salaryType === '時薪' && salaryData.baseSalary < MIN_HOURLY_SALARY) {
-      return { success: false, message: `時薪不得低於 ${MIN_HOURLY_SALARY} 元` };
     }
     
     // 檢查是否已存在

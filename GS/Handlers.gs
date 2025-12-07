@@ -589,15 +589,6 @@ function handleSetEmployeeSalaryTW(params) {
       return { ok: false, msg: "必填欄位不完整或無效" };
     }
     
-    // 驗證最低薪資
-    if (salaryData.salaryType === '月薪' && salaryData.baseSalary < 28590) {
-      return { ok: false, msg: "月薪不得低於 28,590 元（2025年基本工資）" };
-    }
-    
-    if (salaryData.salaryType === '時薪' && salaryData.baseSalary < 190) {
-      return { ok: false, msg: "時薪不得低於 190 元（2025年基本工資）" };
-    }
-    
     Logger.log('💾 開始儲存薪資設定...');
     
     // 呼叫核心函數

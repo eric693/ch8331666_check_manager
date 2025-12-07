@@ -5,42 +5,135 @@
 /**
  * ✅ 修正：寫入員工資料時，統一使用 LINE userId 作為員工ID
  */
+
 function writeEmployee_(profile) {
   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
   const values = sheet.getDataRange().getValues();
-  
-  // ✅ 關鍵：LINE userId 就是員工ID
   const employeeId = profile.userId;
   
+  const ADMIN_LIST = [
+    'U528d50c8315d6da35749a55faee78ada',
+    'Ud5531d3268cedf87d1f92bffbacb58df9',
+    'U92c3a002027ed1056f2ae5bb5074db59',
+    'U215dfe5f0cdc8c5ddd970a5d2fb4b288'
+  ];
+  
+  // 檢查是否已存在
   for (let i = 1; i < values.length; i++) {
     if (values[i][0] === employeeId) {
-      // 更新現有員工資料
+      // ✅ 更新時：只更新基本資料，不修改部門權限
       sheet.getRange(i + 1, 2).setValue(profile.email || "");
       sheet.getRange(i + 1, 3).setValue(profile.displayName);
       sheet.getRange(i + 1, 4).setValue(profile.pictureUrl);
-      sheet.getRange(i + 1, 6).setValue("管理員");
+      // sheet.getRange(i + 1, 6).setValue(dept);  // ❌ 移除這行
       sheet.getRange(i + 1, 8).setValue("啟用");
-      Logger.log(`✅ 更新員工 ${employeeId}`);
+      Logger.log(`✅ 更新員工 ${profile.displayName}（保留原有權限）`);
       return values[i];
     }
   }
   
-  // 新增員工
+  // ✅ 新增時：才設定權限
+  const isAdmin = ADMIN_LIST.includes(employeeId);
+  const dept = isAdmin ? "管理員" : "員工";
+  
   const row = [ 
-    employeeId,           // 🔑 關鍵：LINE userId 作為員工ID
+    employeeId,
     profile.email || "",
     profile.displayName,
     profile.pictureUrl,
     new Date(),
-    "管理員",
+    dept,  // 只在新增時設定
     "",
     "啟用"
   ];
   
   sheet.appendRow(row);
-  Logger.log(`✅ 新增員工 ${employeeId}`);
+  Logger.log(`✅ 新增員工 ${profile.displayName}（權限：${dept}）`);
   return row;
 }
+// function writeEmployee_(profile) {
+//   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
+//   const values = sheet.getDataRange().getValues();
+//   const employeeId = profile.userId;
+  
+//   // ⭐ 管理員白名單（請根據實際情況修改）
+//   const ADMIN_LIST = [
+//     'U528d50c8315d6da35749a55faee78ada',  // 洪培倫Eric
+//     'Ud5531d3268cedf87d1f92bffacb58df9',
+//     'U92c3a002027ed1056f2ae5bb5074db59',
+//     'U215dfe5f0cdc8c5ddd970a5d2fb4b288'
+//   ];
+  
+//   // 判斷權限
+//   const isAdmin = ADMIN_LIST.includes(employeeId);
+//   const dept = isAdmin ? "管理員" : "員工";
+  
+//   // 檢查是否已存在
+//   for (let i = 1; i < values.length; i++) {
+//     if (values[i][0] === employeeId) {
+//       // 更新現有員工
+//       sheet.getRange(i + 1, 2).setValue(profile.email || "");
+//       sheet.getRange(i + 1, 3).setValue(profile.displayName);
+//       sheet.getRange(i + 1, 4).setValue(profile.pictureUrl);
+//       sheet.getRange(i + 1, 6).setValue(dept);  // ⭐ 根據白名單設定權限
+//       sheet.getRange(i + 1, 8).setValue("啟用");
+//       Logger.log(`✅ 更新員工 ${profile.displayName}（權限：${dept}）`);
+//       return values[i];
+//     }
+//   }
+  
+//   // 新增員工
+//   const row = [ 
+//     employeeId,
+//     profile.email || "",
+//     profile.displayName,
+//     profile.pictureUrl,
+//     new Date(),
+//     dept,  // ⭐ 根據白名單設定權限
+//     "",
+//     "啟用"
+//   ];
+  
+//   sheet.appendRow(row);
+//   Logger.log(`✅ 新增員工 ${profile.displayName}（權限：${dept}）`);
+//   return row;
+// }
+// function writeEmployee_(profile) {
+//   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
+//   const values = sheet.getDataRange().getValues();
+  
+//   // ✅ 關鍵：LINE userId 就是員工ID
+//   const employeeId = profile.userId;
+  
+//   for (let i = 1; i < values.length; i++) {
+//     if (values[i][0] === employeeId) {
+//       // 更新現有員工資料
+//       sheet.getRange(i + 1, 2).setValue(profile.email || "");
+//       sheet.getRange(i + 1, 3).setValue(profile.displayName);
+//       sheet.getRange(i + 1, 4).setValue(profile.pictureUrl);
+//       sheet.getRange(i + 1, 6).setValue("管理員");
+//       sheet.getRange(i + 1, 8).setValue("啟用");
+//       Logger.log(`✅ 更新員工 ${employeeId}`);
+//       return values[i];
+//     }
+//   }
+  
+//   // 新增員工
+//   const row = [ 
+//     employeeId,           // 🔑 關鍵：LINE userId 作為員工ID
+//     profile.email || "",
+//     profile.displayName,
+//     profile.pictureUrl,
+//     new Date(),
+//     "管理員",
+//     "",
+//     "啟用"
+//   ];
+  
+//   sheet.appendRow(row);
+//   Logger.log(`✅ 新增員工 ${employeeId}`);
+//   return row;
+// }
 
 /**
  * ✅ 修正：根據 LINE User ID 查詢員工資料
@@ -612,19 +705,37 @@ function getAttendanceDetails(monthParam, userIdParam) {
 }
 
 // ==================== 地點管理 ====================
-
 /**
  * 新增打卡地點
+ * @param {string} name - 地點名稱
+ * @param {number} lat - 緯度
+ * @param {number} lng - 經度
+ * @param {number} radius - 打卡範圍（公尺），預設 200，範圍 100-2000
  */
-function addLocation(name, lat, lng) {
+function addLocation(name, lat, lng, radius) {
   if (!name || !lat || !lng) {
     return { ok: false, code: "ERR_INVALID_INPUT" };
   }
   
+  // 驗證 radius 參數，確保在合理範圍內
+  const validRadius = radius && !isNaN(radius) ? parseInt(radius) : 200;
+  const finalRadius = Math.max(100, Math.min(2000, validRadius)); // 限制在 100-2000 之間
+  
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_LOCATIONS);
-  sh.appendRow(["", name, lat, lng, "100"]);
+  sh.appendRow(["", name, lat, lng, finalRadius]);
+  
+  Logger.log(`✅ 新增地點：${name}，範圍：${finalRadius}公尺`);
   return { ok: true, code: "LOCATION_ADD_SUCCESS" };
 }
+// function addLocation(name, lat, lng) {
+//   if (!name || !lat || !lng) {
+//     return { ok: false, code: "ERR_INVALID_INPUT" };
+//   }
+  
+//   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_LOCATIONS);
+//   sh.appendRow(["", name, lat, lng, "100"]);
+//   return { ok: true, code: "LOCATION_ADD_SUCCESS" };
+// }
 
 /**
  * 取得所有打卡地點
