@@ -807,6 +807,10 @@ async function renderCalendar(date) {
         // 如果有，直接從快取讀取資料並渲染
         const records = monthDataCache[monthkey];
         renderCalendarWithData(year, month, today, records, calendarGrid, monthTitle);
+        
+        // ✨ 新增：更新統計資料
+        updateMonthlyStats(records);
+        
     } else {
         // 如果沒有，才發送 API 請求
         // 清空日曆，顯示載入狀態，並確保置中
@@ -824,6 +828,10 @@ async function renderCalendar(date) {
                 // 從快取取得本月資料
                 const records = monthDataCache[monthkey] || [];
                 renderCalendarWithData(year, month, today, records, calendarGrid, monthTitle);
+                
+                // ✨ 新增：更新統計資料
+                updateMonthlyStats(records);
+                
             } else {
                 console.error("Failed to fetch attendance records:", res.msg);
                 showNotification(t("ERROR_FETCH_RECORDS"), "error");
@@ -834,6 +842,71 @@ async function renderCalendar(date) {
     }
 }
 
+/**
+ * ✨ 更新本月出勤統計
+ * @param {Array} records - 本月的出勤記錄
+ */
+function updateMonthlyStats(records) {
+    // 取得統計元素
+    const totalHoursEl = document.getElementById('stats-total-hours');
+    const workDaysEl = document.getElementById('stats-work-days');
+    const abnormalCountEl = document.getElementById('stats-abnormal-count');
+    const normalDaysEl = document.getElementById('stats-normal-days');
+    
+    if (!totalHoursEl || !workDaysEl || !abnormalCountEl || !normalDaysEl) {
+        console.warn('找不到統計元素');
+        return;
+    }
+    
+    // 初始化統計變數
+    let totalHours = 0;
+    let workDays = 0;
+    let abnormalCount = 0;
+    let normalDays = 0;
+    
+    // 遍歷所有記錄計算統計
+    records.forEach(record => {
+        // 計算工時
+        const punchIn = record.record ? record.record.find(r => r.type === '上班') : null;
+        const punchOut = record.record ? record.record.find(r => r.type === '下班') : null;
+        
+        if (punchIn && punchOut) {
+            try {
+                const inTime = new Date(`${record.date} ${punchIn.time}`);
+                const outTime = new Date(`${record.date} ${punchOut.time}`);
+                const diffMs = outTime - inTime;
+                const hours = diffMs / (1000 * 60 * 60);
+                
+                if (hours > 0) {
+                    totalHours += hours;
+                    workDays++;
+                }
+            } catch (e) {
+                console.error('計算工時失敗:', e);
+            }
+        }
+        
+        // 判斷是否為異常記錄
+        const abnormalReasons = [
+            'STATUS_PUNCH_IN_MISSING',
+            'STATUS_PUNCH_OUT_MISSING',
+            'STATUS_REPAIR_PENDING',
+            'STATUS_REPAIR_REJECTED'
+        ];
+        
+        if (abnormalReasons.includes(record.reason)) {
+            abnormalCount++;
+        } else if (record.reason === 'STATUS_PUNCH_NORMAL' || record.reason === 'STATUS_REPAIR_APPROVED') {
+            normalDays++;
+        }
+    });
+    
+    // 更新 DOM
+    totalHoursEl.textContent = totalHours > 0 ? `${totalHours.toFixed(1)} 小時` : '0 小時';
+    workDaysEl.textContent = `${workDays} 天`;
+    abnormalCountEl.textContent = `${abnormalCount} 筆`;
+    normalDaysEl.textContent = `${normalDays} 天`;
+}
 async function submitAdjustPunch(date, type, note) {
     try {
         showNotification("正在提交補打卡...", "info");
