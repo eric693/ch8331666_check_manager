@@ -1674,6 +1674,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadPendingOvertimeRequests();
             loadPendingLeaveRequests();
             displayAdminAnnouncements();
+            initAdminAnalysis();
         } else if (tabId === 'overtime-view') {
             initOvertimeTab();
         } else if (tabId === 'leave-view') {
