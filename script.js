@@ -1852,118 +1852,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return minutes1 - minutes2;
     }
 
-    async function doPunch(type) {
-        const punchButtonId = type === '上班' ? 'punch-in-btn' : 'punch-out-btn';
-        
-        // 獲取按鈕元素
-        const button = document.getElementById(punchButtonId);
-        const loadingText = t('LOADING') || '處理中...';
-    
-        // 檢查按鈕是否存在，若不存在則直接返回
-        if (!button) return;
-    
-        // A. 進入處理中狀態
-        generalButtonState(button, 'processing', loadingText);
-        
-        // ==================== 新增：上班打卡前檢查排班 ====================
-        if (type === '上班') {
-            try {
-                const userId = localStorage.getItem('sessionUserId');
-                const today = new Date().toISOString().split('T')[0];
-                
-                // 呼叫排班 API
-                const shiftRes = await callApifetch(`getEmployeeShiftForDate&employeeId=${userId}&date=${today}`);
-                
-                if (shiftRes.ok && shiftRes.hasShift) {
-                    const shift = shiftRes.data;
-                    
-                    // 顯示排班資訊提示
-                    showNotification(
-                        t('SHIFT_INFO_NOTIFICATION', {
-                            shiftType: shift.shiftType,
-                            startTime: shift.startTime,
-                            endTime: shift.endTime
-                        }) || `今日排班：${shift.shiftType} (${shift.startTime}-${shift.endTime})`,
-                        'info'
-                    );
-                    
-                    // 可選：檢查打卡時間是否合理
-                    const now = new Date();
-                    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                    
-                    if (shift.startTime) {
-                        const timeDiff = getTimeDifference(currentTime, shift.startTime);
-                        
-                        // 如果提前超過 30 分鐘打卡，給予提醒
-                        if (timeDiff < -30) {
-                            showNotification(
-                                t('EARLY_PUNCH_WARNING') || `注意：您的排班時間是 ${shift.startTime}，目前提前超過 30 分鐘打卡。`,
-                                'warning'
-                            );
-                        }
-                        // 如果遲到超過 30 分鐘，給予提醒
-                        else if (timeDiff > 30) {
-                            showNotification(
-                                t('LATE_PUNCH_WARNING') || `注意：您的排班時間是 ${shift.startTime}，目前已遲到超過 30 分鐘。`,
-                                'warning'
-                            );
-                        }
-                    }
-                } else {
-                    // 今日沒有排班，可選擇是否提醒
-                    // showNotification(t('NO_SHIFT_TODAY') || '今日無排班記錄', 'info');
-                }
-            } catch (error) {
-                console.error('檢查排班失敗:', error);
-                // 排班檢查失敗不影響打卡流程，繼續執行
-            }
-        }
-        // ==================== 排班檢查結束 ====================
-        
-        // 檢查瀏覽器是否支援定位
-        if (!navigator.geolocation) {
-            showNotification(t("ERROR_GEOLOCATION", { msg: "您的瀏覽器不支援地理位置功能。" }), "error");
-            
-            // B. 退出點 1: 不支援定位，恢復按鈕狀態
-            generalButtonState(button, 'idle');
-            return;
-        }
-        
-        // C. 處理地理位置的異步回呼
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-            // --- 定位成功：執行 API 請求 ---
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            const action = `punch&type=${encodeURIComponent(type)}&lat=${lat}&lng=${lng}&note=${encodeURIComponent(navigator.userAgent)}`;
-            
-            try {
-                const res = await callApifetch(action);
-                const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
-                showNotification(msg, res.ok ? "success" : "error");
-                
-                // 打卡成功後，清除排班快取（以便下次載入最新資料）
-                if (res.ok && type === '上班') {
-                    clearShiftCache();
-                }
-                
-                // D. 退出點 2: API 成功，恢復按鈕狀態
-                generalButtonState(button, 'idle');
-            } catch (err) {
-                console.error(err);
-                
-                // E. 退出點 3: API 失敗，恢復按鈕狀態
-                generalButtonState(button, 'idle');
-            }
-            
-        }, (err) => {
-            // --- 定位失敗：處理權限錯誤等 ---
-            showNotification(t("ERROR_GEOLOCATION", { msg: err.message }), "error");
-            
-            // F. 退出點 4: 定位回呼失敗，恢復按鈕狀態
-            generalButtonState(button, 'idle');
-        });
-    }
-    
     punchInBtn.addEventListener('click', () => doPunch("上班"));
     punchOutBtn.addEventListener('click', () => doPunch("下班"));
 
@@ -3180,4 +3068,107 @@ function resetBiometric() {
     if (readyStatus) readyStatus.classList.add('hidden');
     
     showNotification('生物辨識已重置', 'success');
+}
+
+/**
+     * 執行打卡
+     */
+async function doPunch(type) {
+    const punchButtonId = type === '上班' ? 'punch-in-btn' : 'punch-out-btn';
+    
+    const button = document.getElementById(punchButtonId);
+    const loadingText = t('LOADING') || '處理中...';
+
+    if (!button) return;
+
+    generalButtonState(button, 'processing', loadingText);
+    
+    // ==================== 上班打卡前檢查排班 ====================
+    if (type === '上班') {
+        try {
+            const userId = localStorage.getItem('sessionUserId');
+            const today = new Date().toISOString().split('T')[0];
+            
+            const shiftRes = await callApifetch(`getEmployeeShiftForDate&employeeId=${userId}&date=${today}`);
+            
+            if (shiftRes.ok && shiftRes.hasShift) {
+                const shift = shiftRes.data;
+                
+                showNotification(
+                    t('SHIFT_INFO_NOTIFICATION', {
+                        shiftType: shift.shiftType,
+                        startTime: shift.startTime,
+                        endTime: shift.endTime
+                    }) || `今日排班：${shift.shiftType} (${shift.startTime}-${shift.endTime})`,
+                    'info'
+                );
+                
+                const now = new Date();
+                const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                
+                if (shift.startTime) {
+                    const timeDiff = getTimeDifference(currentTime, shift.startTime);
+                    
+                    if (timeDiff < -30) {
+                        showNotification(
+                            t('EARLY_PUNCH_WARNING') || `注意：您的排班時間是 ${shift.startTime}，目前提前超過 30 分鐘打卡。`,
+                            'warning'
+                        );
+                    }
+                    else if (timeDiff > 30) {
+                        showNotification(
+                            t('LATE_PUNCH_WARNING') || `注意：您的排班時間是 ${shift.startTime}，目前已遲到超過 30 分鐘。`,
+                            'warning'
+                        );
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('檢查排班失敗:', error);
+        }
+    }
+    
+    if (!navigator.geolocation) {
+        showNotification(t("ERROR_GEOLOCATION", { msg: "您的瀏覽器不支援地理位置功能。" }), "error");
+        generalButtonState(button, 'idle');
+        return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const action = `punch&type=${encodeURIComponent(type)}&lat=${lat}&lng=${lng}&note=${encodeURIComponent(navigator.userAgent)}`;
+        
+        try {
+            const res = await callApifetch(action);
+            const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
+            showNotification(msg, res.ok ? "success" : "error");
+            
+            if (res.ok && type === '上班') {
+                clearShiftCache();
+            }
+            
+            generalButtonState(button, 'idle');
+        } catch (err) {
+            console.error(err);
+            generalButtonState(button, 'idle');
+        }
+        
+    }, (err) => {
+        showNotification(t("ERROR_GEOLOCATION", { msg: err.message }), "error");
+        generalButtonState(button, 'idle');
+    });
+}
+
+/**
+ * 輔助函數：計算時間差（分鐘）
+ */
+function getTimeDifference(time1, time2) {
+    const [h1, m1] = time1.split(':').map(Number);
+    const [h2, m2] = time2.split(':').map(Number);
+    
+    const minutes1 = h1 * 60 + m1;
+    const minutes2 = h2 * 60 + m2;
+    
+    return minutes1 - minutes2;
 }
