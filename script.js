@@ -2171,6 +2171,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (loadAnalysisBtn) {
         loadAnalysisBtn.addEventListener('click', loadPunchAnalysis);
     }
+    // 👇 新增：綁定匯出按鈕
+    const exportEmployeePunchBtn = document.getElementById('export-employee-punch-btn');
+    if (exportEmployeePunchBtn) {
+        exportEmployeePunchBtn.addEventListener('click', exportEmployeePunchReport);
+    }
     // 月曆按鈕事件
     document.getElementById('prev-month').addEventListener('click', () => {
         currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
@@ -2778,6 +2783,177 @@ function renderPunchTimeChart(dates, punchInTimes, punchOutTimes) {
             }
         }
     });
+}
+
+/**
+ * 匯出員工打卡報表（含時分秒和每日總時數）
+ */
+async function exportEmployeePunchReport() {
+    const employeeSelect = document.getElementById('analysis-employee');
+    const monthInput = document.getElementById('analysis-month');
+    const exportBtn = document.getElementById('export-employee-punch-btn');
+    
+    if (!employeeSelect || !monthInput) return;
+    
+    const employeeId = employeeSelect.value;
+    const yearMonth = monthInput.value;
+    
+    if (!employeeId) {
+        showNotification('請選擇員工', 'error');
+        return;
+    }
+    
+    if (!yearMonth) {
+        showNotification('請選擇月份', 'error');
+        return;
+    }
+    
+    const loadingText = t('EXPORT_LOADING') || '正在準備報表...';
+    showNotification(loadingText, 'warning');
+    
+    if (exportBtn) {
+        generalButtonState(exportBtn, 'processing', loadingText);
+    }
+    
+    try {
+        // 取得員工名稱
+        const employeeName = employeeSelect.options[employeeSelect.selectedIndex].text.split(' (')[0];
+        
+        // 呼叫後端 API 取得詳細打卡資料
+        const res = await callApifetch(`getAttendanceDetails&month=${yearMonth}&userId=${employeeId}`);
+        
+        if (!res.ok || !res.records || res.records.length === 0) {
+            showNotification(t('EXPORT_NO_DATA') || '本月沒有出勤記錄', 'warning');
+            return;
+        }
+        
+        // 整理資料為 Excel 格式
+        const exportData = [];
+        
+        res.records.forEach(record => {
+            // 找出上班和下班的記錄
+            const punchInRecord = record.record ? record.record.find(r => r.type === '上班') : null;
+            const punchOutRecord = record.record ? record.record.find(r => r.type === '下班') : null;
+            
+            // 計算工時
+            let workHours = '-';
+            let workHoursDecimal = 0;
+            
+            if (punchInRecord && punchOutRecord) {
+                try {
+                    // 使用完整的日期時間來計算
+                    const inTime = new Date(`${record.date} ${punchInRecord.time}`);
+                    const outTime = new Date(`${record.date} ${punchOutRecord.time}`);
+                    const diffMs = outTime - inTime;
+                    
+                    if (diffMs > 0) {
+                        workHoursDecimal = diffMs / (1000 * 60 * 60);
+                        const hours = Math.floor(workHoursDecimal);
+                        const minutes = Math.round((workHoursDecimal - hours) * 60);
+                        workHours = `${hours}小時${minutes}分`;
+                    }
+                } catch (e) {
+                    console.error('計算工時失敗:', e);
+                    workHours = '計算錯誤';
+                }
+            }
+            
+            // 翻譯狀態
+            const statusText = t(record.reason) || record.reason;
+            
+            // 處理備註
+            const notes = record.record
+                ? record.record
+                    .filter(r => r.note && r.note !== '系統虛擬卡')
+                    .map(r => r.note)
+                    .join('; ')
+                : '';
+            
+            exportData.push({
+                '日期': record.date,
+                '星期': getDayOfWeek(record.date),
+                '上班時間': punchInRecord ? `${punchInRecord.time}:00` : '-',
+                '上班地點': punchInRecord?.location || '-',
+                '下班時間': punchOutRecord ? `${punchOutRecord.time}:00` : '-',
+                '下班地點': punchOutRecord?.location || '-',
+                '工作時數': workHours,
+                '工時（小時）': workHoursDecimal > 0 ? workHoursDecimal.toFixed(2) : '-',
+                '狀態': statusText,
+                '備註': notes || '-'
+            });
+        });
+        
+        // 計算統計資料
+        const totalWorkHours = exportData.reduce((sum, row) => {
+            const hours = parseFloat(row['工時（小時）']);
+            return sum + (isNaN(hours) ? 0 : hours);
+        }, 0);
+        
+        const totalDays = exportData.filter(row => row['工時（小時）'] !== '-').length;
+        const avgWorkHours = totalDays > 0 ? (totalWorkHours / totalDays).toFixed(2) : 0;
+        
+        // 新增統計行
+        exportData.push({});
+        exportData.push({
+            '日期': '統計',
+            '星期': '',
+            '上班時間': '',
+            '上班地點': '',
+            '下班時間': '',
+            '下班地點': '',
+            '工作時數': `共 ${totalDays} 天`,
+            '工時（小時）': totalWorkHours.toFixed(2),
+            '狀態': `平均: ${avgWorkHours}`,
+            '備註': ''
+        });
+        
+        // 使用 SheetJS 建立 Excel 檔案
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        
+        // 設定欄位寬度
+        const wscols = [
+            { wch: 12 },  // 日期
+            { wch: 8 },   // 星期
+            { wch: 12 },  // 上班時間
+            { wch: 25 },  // 上班地點
+            { wch: 12 },  // 下班時間
+            { wch: 25 },  // 下班地點
+            { wch: 15 },  // 工作時數
+            { wch: 12 },  // 工時（小時）
+            { wch: 18 },  // 狀態
+            { wch: 30 }   // 備註
+        ];
+        ws['!cols'] = wscols;
+        
+        // 建立工作簿
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `${yearMonth.split('-')[1]}月出勤`);
+        
+        // 下載檔案
+        const [year, month] = yearMonth.split('-');
+        const fileName = `${employeeName}_${year}年${month}月_打卡記錄.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showNotification(t('EXPORT_SUCCESS') || '報表已成功匯出！', 'success');
+        
+    } catch (error) {
+        console.error('匯出失敗:', error);
+        showNotification(t('EXPORT_FAILED') || '匯出失敗，請稍後再試', 'error');
+        
+    } finally {
+        if (exportBtn) {
+            generalButtonState(exportBtn, 'idle');
+        }
+    }
+}
+
+/**
+ * 取得星期幾
+ */
+function getDayOfWeek(dateString) {
+    const date = new Date(dateString);
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    return `星期${weekdays[date.getDay()]}`;
 }
 
 /**
