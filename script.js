@@ -1067,6 +1067,11 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
                 case "STATUS_REPAIR_APPROVED":
                     dateClass = 'approved-virtual';
                     break;
+                case "STATUS_NO_RECORD":
+                    if (record.overtime) {
+                        dateClass = 'day-off';  // 綠色底
+                    }
+                    break;
                 default:
                     if (reason && reason !== "") {
                         dateClass = 'pending-adjustment';
