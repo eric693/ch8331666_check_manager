@@ -1237,35 +1237,47 @@ async function renderDailyRecords(dateKey) {
         
         if (dailyRecords.length > 0) {
             dailyRecordsEmpty.style.display = 'none';
+            
             dailyRecords.forEach(recordData => {
                 const li = document.createElement('li');
                 li.className = 'p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-3';
                 
-                // 👉 打卡記錄
-                const recordHtml = recordData.record.map(r => {
-                    const typeKey = r.type === '上班' ? 'PUNCH_IN' : 'PUNCH_OUT';
-                    return `
+                // 打卡記錄（可能為空）
+                let recordHtml = '';
+                if (recordData.record && recordData.record.length > 0) {
+                    recordHtml = recordData.record.map(r => {
+                        const typeKey = r.type === '上班' ? 'PUNCH_IN' : 'PUNCH_OUT';
+                        return `
+                            <div class="border-b border-gray-200 dark:border-gray-600 pb-2">
+                                <p class="font-medium text-gray-800 dark:text-white">
+                                    ${r.time} - ${t(typeKey)}
+                                </p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    地點：${r.location}
+                                </p>
+                                ${r.note ? `<p class="text-sm text-gray-500 dark:text-gray-400">備註：${r.note}</p>` : ''}
+                            </div>
+                        `;
+                    }).join("");
+                } else {
+                    // 沒有打卡記錄時顯示提示
+                    recordHtml = `
                         <div class="border-b border-gray-200 dark:border-gray-600 pb-2">
-                            <p class="font-medium text-gray-800 dark:text-white">
-                                ${r.time} - ${t(typeKey)}
+                            <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+                                該日沒有打卡紀錄
                             </p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                📍 ${r.location}
-                            </p>
-                            ${r.note ? `<p class="text-sm text-gray-500 dark:text-gray-400">📝 備註：${r.note}</p>` : ''}
                         </div>
                     `;
-                }).join("");
+                }
                 
-                // 👉 加班資訊顯示（新增）
+                // 加班資訊顯示
                 let overtimeHtml = '';
                 if (recordData.overtime) {
                     const ot = recordData.overtime;
                     overtimeHtml = `
                         <div class="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg p-3 mt-3">
                             <div class="flex items-center justify-between mb-2">
-                                <p class="font-bold text-orange-800 dark:text-orange-300 flex items-center">
-                                    <span class="text-lg mr-2">⏰</span>
+                                <p class="font-bold text-orange-800 dark:text-orange-300">
                                     加班時段
                                 </p>
                                 <span class="px-2 py-1 bg-orange-600 text-white text-xs font-bold rounded-full">
@@ -1274,11 +1286,11 @@ async function renderDailyRecords(dateKey) {
                             </div>
                             <div class="space-y-1">
                                 <p class="text-sm text-orange-700 dark:text-orange-400">
-                                    🕐 ${ot.startTime} - ${ot.endTime}
+                                    時間：${ot.startTime} - ${ot.endTime}
                                 </p>
                                 ${ot.reason ? `
                                     <p class="text-sm text-orange-600 dark:text-orange-300">
-                                        📝 ${ot.reason}
+                                        原因：${ot.reason}
                                     </p>
                                 ` : ''}
                             </div>
@@ -1286,7 +1298,7 @@ async function renderDailyRecords(dateKey) {
                     `;
                 }
                 
-                // 👉 系統判斷狀態
+                // 系統判斷狀態
                 const statusHtml = `
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">
                         <span class="font-medium">系統判斷：</span>
@@ -1299,6 +1311,7 @@ async function renderDailyRecords(dateKey) {
                 renderTranslations(li);
             });
         } else {
+            // 真的完全沒有任何記錄
             dailyRecordsEmpty.style.display = 'block';
         }
         
