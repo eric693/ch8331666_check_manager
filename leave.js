@@ -27,7 +27,7 @@ async function initLeaveTab() {
     // 載入假期餘額
     await loadLeaveBalance();
     
-    // 載入請假記錄
+    // 載入請假紀錄
     await loadLeaveRecords();
     
     // 綁定事件監聽器
@@ -136,7 +136,7 @@ function renderLeaveBalance(balance) {
 }
 
 /**
- * 載入請假記錄
+ * 載入請假紀錄
  */
 async function loadLeaveRecords() {
     const userId = localStorage.getItem('sessionUserId');
@@ -160,18 +160,18 @@ async function loadLeaveRecords() {
             emptyEl.style.display = 'none';
             renderLeaveRecords(res.records);
         } else {
-            console.log('ℹ️ 沒有請假記錄');
+            console.log('ℹ️ 沒有請假紀錄');
             emptyEl.style.display = 'block';
         }
         
     } catch (error) {
-        console.error('❌ 載入請假記錄失敗:', error);
+        console.error('❌ 載入請假紀錄失敗:', error);
         loadingEl.style.display = 'none';
         emptyEl.style.display = 'block';
     }
 }
 /**
- * 渲染請假記錄（修正版）
+ * 渲染請假紀錄（修正版）
  */
 function renderLeaveRecords(records) {
     const listEl = document.getElementById('leave-records-list');
