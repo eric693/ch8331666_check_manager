@@ -612,3 +612,72 @@ html.dark #search-results-list li:hover {
     right: 2px;
     font-size: 10px;
 }
+
+/* ======================================= */
+/* 請假日樣式 (Leave Day Styles) */
+/* ======================================= */
+
+/* 亮色模式 - 請假日 */
+.day-cell.leave-day {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    border: 2px solid #3b82f6;
+}
+
+/* 暗黑模式 - 請假日 */
+html.dark .day-cell.leave-day {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    color: #bfdbfe;
+    border: 2px solid #3b82f6;
+}
+
+/* 日期單元格內容佈局 */
+.day-cell-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    position: relative;
+}
+
+.day-number {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* 狀態圖示容器 */
+.status-icons {
+    display: flex;
+    gap: 2px;
+    margin-top: 2px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.status-icon {
+    font-size: 0.625rem;
+    line-height: 1;
+}
+
+/* 響應式調整 */
+@media (max-width: 640px) {
+    .status-icon {
+        font-size: 0.5rem;
+    }
+    
+    .day-number {
+        font-size: 0.75rem;
+    }
+}
+
+/* 請假且打卡異常的日期（同時顯示兩種狀態） */
+.day-cell.leave-day.abnormal-day {
+    background: linear-gradient(135deg, #fecaca 0%, #bfdbfe 100%);
+    border: 2px dashed #ef4444;
+}
+
+html.dark .day-cell.leave-day.abnormal-day {
+    background: linear-gradient(135deg, #991b1b 0%, #1e40af 100%);
+    border: 2px dashed #ef4444;
+}

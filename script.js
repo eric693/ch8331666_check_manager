@@ -1023,6 +1023,8 @@ async function submitAdjustPunch(date, type, note) {
 }
 
 // 新增一個獨立的渲染函式，以便從快取或 API 回應中調用
+// 在 script.js 中找到 renderCalendarWithData 函數，並修改如下：
+
 function renderCalendarWithData(year, month, today, records, calendarGrid, monthTitle) {
     calendarGrid.innerHTML = '';
     monthTitle.textContent = t("MONTH_YEAR_TEMPLATE", {
@@ -1048,6 +1050,9 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
         
         const todayRecords = records.filter(r => r.date === dateKey);
         
+        // 👇 新增：用於存儲所有狀態標記
+        const statusIcons = [];
+        
         if (todayRecords.length > 0) {
             const record = todayRecords[0];
             const reason = record.reason;
@@ -1068,7 +1073,8 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
                     dateClass = 'approved-virtual';
                     break;
                 case "STATUS_NO_RECORD":
-                    if (record.overtime) {
+                    // 如果有加班或請假，則顯示為特殊狀態
+                    if (record.overtime || record.leave) {
                         dateClass = 'day-off';
                     }
                     break;
@@ -1081,12 +1087,22 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
             
             // 👉 如果有加班記錄，加上特殊標記
             if (record.overtime) {
-                dayCell.innerHTML = `
-                    <div class="relative">
-                        <span>${i}</span>
-                        <span class="absolute top-0 right-0 text-xs">⏰</span>
-                    </div>
-                `;
+                statusIcons.push('⏰');
+            }
+            
+            // 👉 如果有請假記錄，加上特殊標記
+            if (record.leave) {
+                const leaveStatus = record.leave.status;
+                
+                // 根據請假狀態設定不同圖示
+                if (leaveStatus === 'APPROVED') {
+                    statusIcons.push('🏖️');
+                    dateClass = 'leave-day'; // 新的 CSS 類別
+                } else if (leaveStatus === 'PENDING') {
+                    statusIcons.push('⏳');
+                } else if (leaveStatus === 'REJECTED') {
+                    statusIcons.push('❌');
+                }
             }
         }
         
@@ -1098,6 +1114,18 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
             dayCell.style.pointerEvents = 'none';
         } else {
             dayCell.classList.add(dateClass);
+        }
+        
+        // 👉 將日期和圖示組合顯示
+        if (statusIcons.length > 0) {
+            dayCell.innerHTML = `
+                <div class="day-cell-content">
+                    <span class="day-number">${i}</span>
+                    <div class="status-icons">
+                        ${statusIcons.map(icon => `<span class="status-icon">${icon}</span>`).join('')}
+                    </div>
+                </div>
+            `;
         }
         
         dayCell.classList.add('day-cell');
@@ -1237,6 +1265,7 @@ async function renderDailyRecords(dateKey) {
         }
     }
     
+    // 在 script.js 的 renderDailyRecords 函數中，找到 renderRecords 內部函數並修改：
     function renderRecords(records) {
         const dailyRecords = records.filter(record => record.date === dateKey);
         
@@ -1265,7 +1294,6 @@ async function renderDailyRecords(dateKey) {
                         `;
                     }).join("");
                 } else {
-                    // 沒有打卡記錄時顯示提示
                     recordHtml = `
                         <div class="border-b border-gray-200 dark:border-gray-600 pb-2">
                             <p class="text-sm text-gray-500 dark:text-gray-400 italic">
@@ -1275,7 +1303,53 @@ async function renderDailyRecords(dateKey) {
                     `;
                 }
                 
-                // 加班資訊顯示
+                // 👇 新增：請假資訊顯示
+                let leaveHtml = '';
+                if (recordData.leave) {
+                    const leave = recordData.leave;
+                    let statusClass = 'bg-yellow-50 border-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-700';
+                    let statusText = t('PENDING');
+                    
+                    if (leave.status === 'APPROVED') {
+                        statusClass = 'bg-blue-50 border-blue-300 dark:bg-blue-900/20 dark:border-blue-700';
+                        statusText = t('APPROVED');
+                    } else if (leave.status === 'REJECTED') {
+                        statusClass = 'bg-red-50 border-red-300 dark:bg-red-900/20 dark:border-red-700';
+                        statusText = t('REJECTED');
+                    }
+                    
+                    leaveHtml = `
+                        <div class="${statusClass} border-2 rounded-lg p-3 mt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="font-bold text-blue-800 dark:text-blue-300">
+                                    🏖️ 請假資訊
+                                </p>
+                                <span class="px-2 py-1 text-xs font-bold rounded-full ${
+                                    leave.status === 'APPROVED' ? 'bg-green-600 text-white' :
+                                    leave.status === 'REJECTED' ? 'bg-red-600 text-white' :
+                                    'bg-yellow-600 text-white'
+                                }">
+                                    ${statusText}
+                                </span>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-sm text-blue-700 dark:text-blue-400">
+                                    假別：${t(leave.leaveType)}
+                                </p>
+                                <p class="text-sm text-blue-700 dark:text-blue-400">
+                                    天數：${leave.days} 天
+                                </p>
+                                ${leave.reason ? `
+                                    <p class="text-sm text-blue-600 dark:text-blue-300">
+                                        原因：${leave.reason}
+                                    </p>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 加班資訊顯示（保持原有）
                 let overtimeHtml = '';
                 if (recordData.overtime) {
                     const ot = recordData.overtime;
@@ -1283,7 +1357,7 @@ async function renderDailyRecords(dateKey) {
                         <div class="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg p-3 mt-3">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="font-bold text-orange-800 dark:text-orange-300">
-                                    加班時段
+                                    ⏰ 加班時段
                                 </p>
                                 <span class="px-2 py-1 bg-orange-600 text-white text-xs font-bold rounded-full">
                                     ${ot.hours} 小時
@@ -1311,12 +1385,11 @@ async function renderDailyRecords(dateKey) {
                     </p>
                 `;
                 
-                li.innerHTML = recordHtml + overtimeHtml + statusHtml;
+                li.innerHTML = recordHtml + leaveHtml + overtimeHtml + statusHtml;
                 dailyRecordsList.appendChild(li);
                 renderTranslations(li);
             });
         } else {
-            // 真的完全沒有任何記錄
             dailyRecordsEmpty.style.display = 'block';
         }
         

@@ -241,6 +241,12 @@
     "LEAVE_APPROVED": "請假申請已核准",
     "LEAVE_REJECTED": "請假申請已拒絕",
     
+    "LEGEND_OVERTIME": "加班",
+    "LEGEND_LEAVE_APPROVED": "請假（已核准）",
+    "LEGEND_LEAVE_PENDING": "請假（審核中）",
+    "LEGEND_LEAVE_REJECTED": "請假（已拒絕）",
+
+
     "ERROR_FETCH_LEAVE_BALANCE": "無法載入假期餘額",
     "ERR_INVALID_LEAVE_TYPE": "無效的假別",
     "ERR_INSUFFICIENT_LEAVE_BALANCE": "{leaveType} 餘額不足（需要 {required} 天，剩餘 {available} 天）",
