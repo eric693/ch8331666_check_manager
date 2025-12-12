@@ -1050,18 +1050,13 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
         
         const todayRecords = records.filter(r => r.date === dateKey);
         
-        // 👇 新增：用於存儲所有狀態標記
-        const statusIcons = [];
+        // ✅ 移除：不再添加 emoji 圖示
+        // const statusIcons = [];
         
         if (todayRecords.length > 0) {
             const record = todayRecords[0];
             const reason = record.reason;
             
-            if (dateKey === '2025-12-10') {
-                console.log('🔍 12/10 記錄:', record);
-                console.log('   - leave:', record.leave);
-                console.log('   - statusIcons:', statusIcons);
-            }
             // 👉 判斷打卡狀態
             switch (reason) {
                 case "STATUS_PUNCH_IN_MISSING":
@@ -1090,6 +1085,8 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
                     break;
             }
             
+            // ✅ 移除：不再添加加班和請假的 emoji
+            /*
             // 👉 如果有加班記錄，加上特殊標記
             if (record.overtime) {
                 statusIcons.push('⏰');
@@ -1109,6 +1106,7 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
                     statusIcons.push('❌');
                 }
             }
+            */
         }
         
         const isToday = (year === today.getFullYear() && month === today.getMonth() && i === today.getDate());
@@ -1121,6 +1119,8 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
             dayCell.classList.add(dateClass);
         }
         
+        // ✅ 移除：不再顯示 emoji 圖示
+        /*
         // 👉 將日期和圖示組合顯示
         if (statusIcons.length > 0) {
             dayCell.innerHTML = `
@@ -1132,6 +1132,7 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
                 </div>
             `;
         }
+        */
         
         dayCell.classList.add('day-cell');
         dayCell.dataset.date = dateKey;
