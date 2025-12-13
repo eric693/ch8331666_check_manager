@@ -2779,23 +2779,26 @@ function displayAdminAnnouncements() {
                     <span class="text-xs text-gray-500">${new Date(a.createdAt).toLocaleString()}</span>
                 </div>
                 <button class="px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded ml-4" 
+                        data-i18n="BTN_DELETE"
                         onclick="deleteAnnouncement('${a.id}')">
                     刪除
                 </button>
             </div>
         `;
         list.appendChild(div);
+        renderTranslations(div);
     });
 }
 
 function deleteAnnouncement(id) {
-    if (!confirm('確定要刪除這則公告嗎？')) return;
+    if (!confirm(t('DELETE_ANNOUNCEMENT_CONFIRM'))) return;
+    
     let announcements = loadAnnouncements();
     announcements = announcements.filter(a => a.id !== id);
     saveAnnouncements(announcements);
     displayAdminAnnouncements();
     displayAnnouncements();
-    showNotification('公告已刪除', 'success');
+    showNotification(t('ANNOUNCEMENT_DELETED'), 'success');
 }
 
 // ==================== 管理員打卡分析功能 ====================

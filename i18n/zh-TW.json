@@ -388,5 +388,38 @@
     "LEAVE_TYPE": "假別",
     "LEAVE_DAYS_COUNT": "天數",
     "LEAVE_REASON_DISPLAY": "原因",
-    "REVIEW_COMMENT": "審核意見"
+    "REVIEW_COMMENT": "審核意見",
+
+
+    "ADMIN_ANNOUNCEMENT_MANAGEMENT": "📢 公告管理",
+    "ANNOUNCEMENT_TITLE_PLACEHOLDER": "公告標題",
+    "ANNOUNCEMENT_CONTENT_PLACEHOLDER": "公告內容",
+    "ANNOUNCEMENT_PRIORITY_NORMAL": "🔵 一般",
+    "ANNOUNCEMENT_PRIORITY_MEDIUM": "🟡 中等",
+    "ANNOUNCEMENT_PRIORITY_HIGH": "🔴 重要",
+    "BTN_PUBLISH_ANNOUNCEMENT": "發布公告",
+    "BTN_DELETE": "刪除",
+    "DELETE_ANNOUNCEMENT_CONFIRM": "確定要刪除這則公告嗎？",
+    "ANNOUNCEMENT_DELETED": "公告已刪除",
+    
+    "SEARCH_LOCATION_LABEL": "🔍 搜尋地點",
+    "SEARCH_LOCATION_PLACEHOLDER": "輸入地址或地點名稱搜尋...",
+    "LOCATION_NAME_PLACEHOLDER": "例如：台北101",
+    "LATITUDE_LABEL": "緯度",
+    "LONGITUDE_LABEL": "經度",
+    "PUNCH_RANGE_LABEL": "打卡範圍",
+    "PUNCH_RANGE_DESCRIPTION": "拖移滑桿以調整允許打卡的半徑（100-2000 公尺）。",
+    
+    "ADMIN_PUNCH_ANALYSIS_TITLE": "員工打卡分析",
+    "ADMIN_PUNCH_ANALYSIS_DESC": "查看員工每月打卡時間分布與工時統計",
+    "SELECT_EMPLOYEE_LABEL": "選擇員工",
+    "SELECT_EMPLOYEE_PLACEHOLDER": "請選擇員工",
+    "SELECT_MONTH_LABEL": "選擇月份",
+    "BTN_LOAD_ANALYSIS": "載入分析圖表",
+    "BTN_EXPORT_PUNCH_REPORT": "匯出打卡報表",
+    
+    "CHART_WORK_HOURS_TITLE": "每日工作時數",
+    "CHART_PUNCH_TIME_TITLE": "打卡時間分布",
+    "ANALYSIS_LOADING": "正在載入分析資料...",
+    "ANALYSIS_NO_DATA": "該月份無打卡記錄"
 }
