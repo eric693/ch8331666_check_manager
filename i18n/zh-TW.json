@@ -346,6 +346,22 @@
     "SALARY_CALCULATED": "系統計算中...",
     "HOURS_THIS_MONTH": "本月統計",
     "SALARY_REMINDER_TITLE": "溫馨提示",
-    "SALARY_REMINDER_TEXT": "薪資系統會自動整合您的打卡、加班和請假記錄進行計算。請確保按時打卡以確保薪資計算準確。"
+    "SALARY_REMINDER_TEXT": "薪資系統會自動整合您的打卡、加班和請假記錄進行計算。請確保按時打卡以確保薪資計算準確。",
 
+
+
+
+
+
+    "ANNOUNCEMENT_TITLE": "📢 最新公告",
+    "ANNOUNCEMENT_EMPTY": "目前沒有公告",
+    "BIOMETRIC_PUNCH_TITLE": "生物辨識快速打卡",
+    "BIOMETRIC_PUNCH_DESC": "使用 Face ID 或指紋一鍵打卡",
+    "BIOMETRIC_STATUS_NOT_SETUP": "未設定",
+    "BIOMETRIC_STATUS_ENABLED": "已啟用",
+    "BIOMETRIC_SETUP_BTN": "設定生物辨識打卡",
+    "BIOMETRIC_PUNCH_IN_BTN": "上班打卡",
+    "BIOMETRIC_PUNCH_OUT_BTN": "下班打卡",
+    "LINE_CHANNEL_TITLE": "加入員工 LINE 頻道，掌握最新公告！",
+    "LINE_CHANNEL_ID": "@789cdyeg"
 }

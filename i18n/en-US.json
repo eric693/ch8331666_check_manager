@@ -330,5 +330,21 @@
   "WEEKDAY_WEDNESDAY": "Wednesday",
   "WEEKDAY_THURSDAY": "Thursday",
   "WEEKDAY_FRIDAY": "Friday",
-  "WEEKDAY_SATURDAY": "Saturday"
+  "WEEKDAY_SATURDAY": "Saturday",
+
+
+
+
+
+  "ANNOUNCEMENT_TITLE": "📢 Latest Announcements",
+  "ANNOUNCEMENT_EMPTY": "No announcements currently",
+  "BIOMETRIC_PUNCH_TITLE": "Biometric Quick Punch",
+  "BIOMETRIC_PUNCH_DESC": "Use Face ID or fingerprint for one-tap punch",
+  "BIOMETRIC_STATUS_NOT_SETUP": "Not Set Up",
+  "BIOMETRIC_STATUS_ENABLED": "Enabled",
+  "BIOMETRIC_SETUP_BTN": "Set Up Biometric Punch",
+  "BIOMETRIC_PUNCH_IN_BTN": "Punch In",
+  "BIOMETRIC_PUNCH_OUT_BTN": "Punch Out",
+  "LINE_CHANNEL_TITLE": "Join Employee LINE Channel for Latest Announcements!",
+  "LINE_CHANNEL_ID": "@789cdyeg"
 }
