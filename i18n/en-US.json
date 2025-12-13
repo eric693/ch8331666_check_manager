@@ -482,6 +482,43 @@
   "BTN_PREV_MONTH": "◀ Previous Month",
   "BTN_NEXT_MONTH": "Next Month ▶",
   "BTN_TODAY": "Today",
-  "SHIFT_CALENDAR_LOADING": "Loading calendar..."
+  "SHIFT_CALENDAR_LOADING": "Loading calendar...",
+
+
+  "SHIFT_NO_DATA": "No shift data available",
+  "SHIFT_LOAD_FAILED": "Load failed",
+  "SHIFT_LOAD_ERROR": "Load failed",
+  
+  "BTN_EDIT": "Edit",
+  
+  "SHIFT_STATS_TOTAL": "Total Monthly Shifts",
+
+  "SHIFT_FILL_TIME": "Please fill in start and end time",
+  "SHIFT_CONFIRM_CROSS_DAY": "End time is before start time, is this an overnight shift?",
+  "SHIFT_ADD_SUCCESS": "Shift added successfully!",
+  "SHIFT_ADD_FAILED": "Add failed",
+  "SHIFT_UPDATE_SUCCESS": "Shift updated successfully!",
+  "SHIFT_UPDATE_FAILED": "Update failed",
+  "SHIFT_DELETE_CONFIRM": "Are you sure you want to delete this shift?",
+  "SHIFT_DELETE_SUCCESS": "Shift deleted",
+  "SHIFT_DELETE_FAILED": "Delete failed",
+  
+  "SHIFT_NO_EXPORT_DATA": "No data to export",
+  "SHIFT_EXPORT_SUCCESS": "Export successful",
+  
+  "SHIFT_BATCH_CSV_ONLY": "Only CSV format is supported",
+  "SHIFT_BATCH_NO_DATA": "No valid data in file",
+  "SHIFT_BATCH_UPLOAD_SUCCESS": "Batch upload successful",
+  "SHIFT_BATCH_UPLOAD_FAILED": "Batch upload failed",
+  "SHIFT_BATCH_NETWORK_ERROR": "Batch upload failed: Network error",
+  
+  "SHIFT_DETAIL_TITLE": "Shift Details",
+  "SHIFT_NO_NOTE": "None",
+  
+  "SHIFT_DISTRIBUTION_TITLE": "Monthly Employee Shift Distribution",
+  "SHIFT_TYPE_DISTRIBUTION_TITLE": "Monthly Shift Type Distribution",
+  "SHIFT_SHIFTS_COUNT": "{count} shifts"
+
+
 
 }

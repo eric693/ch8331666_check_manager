@@ -492,7 +492,7 @@ async function loadShifts(filters = {}) {
     const listContainer = document.getElementById('shift-list');
     if (!listContainer) return;
     
-    listContainer.innerHTML = '<div class="loading">載入中</div>';
+    listContainer.innerHTML = `<div class="loading">${t('SHIFT_LOADING')}</div>`;
     
     try {
         const token = localStorage.getItem('sessionToken');
@@ -525,11 +525,11 @@ async function loadShifts(filters = {}) {
             currentShifts = data.data || [];
             displayShifts(currentShifts);
         } else {
-            listContainer.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><p>載入失敗: ${data.msg}</p></div>`;
+            listContainer.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><p>${t('SHIFT_LOAD_FAILED')}: ${data.msg}</p></div>`;
         }
     } catch (error) {
         console.error('❌ 載入排班失敗:', error);
-        listContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>載入失敗</p></div>';
+        listContainer.innerHTML = `<div class="empty-state"><div class="empty-state-icon">❌</div><p>${t('SHIFT_LOAD_ERROR')}</p></div>`;
     }
 }
 
@@ -541,7 +541,7 @@ function displayShifts(shifts) {
         listContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">📅</div>
-                <p>目前沒有排班資料</p>
+                <p>${t('SHIFT_NO_DATA')}</p>
             </div>
         `;
         return;
@@ -561,27 +561,25 @@ function createShiftItem(shift) {
     
     const shiftTypeBadge = getShiftTypeBadge(shift.shiftType);
     
-    // 格式化時間
     const startTime = formatTimeOnly(shift.startTime);
     const endTime = formatTimeOnly(shift.endTime);
     
     div.innerHTML = `
         <div class="shift-info">
             <h3>${shift.employeeName} ${shiftTypeBadge}</h3>
-            <p>日期: ${formatDate(shift.date)}</p>
-            <p>時間: ${startTime} - ${endTime}</p>
-            <p>地點: ${shift.location}</p>
-            ${shift.note ? `<p>備註: ${shift.note}</p>` : ''}
+            <p>${t('SHIFT_DATE_LABEL')}: ${formatDate(shift.date)}</p>
+            <p>${t('SHIFT_TIME_LABEL')}: ${startTime} - ${endTime}</p>
+            <p>${t('SHIFT_LOCATION_LABEL')}: ${shift.location}</p>
+            ${shift.note ? `<p>${t('SHIFT_NOTE_LABEL')}: ${shift.note}</p>` : ''}
         </div>
         <div class="shift-actions">
-            <button class="btn-icon" onclick="editShift('${shift.shiftId}')">編輯</button>
-            <button class="btn-icon btn-danger" onclick="deleteShift('${shift.shiftId}')">刪除</button>
+            <button class="btn-icon" onclick="editShift('${shift.shiftId}')">${t('BTN_EDIT')}</button>
+            <button class="btn-icon btn-danger" onclick="deleteShift('${shift.shiftId}')">${t('BTN_DELETE')}</button>
         </div>
     `;
     
     return div;
 }
-
 function getShiftTypeBadge(shiftType) {
     const badgeClass = {
         '早班': 'badge-morning',
@@ -1203,7 +1201,7 @@ function displayMonthlyStats(shifts) {
         afternoon: 0,
         night: 0,
         full: 0,
-        dayoff: 0,  // 新增
+        dayoff: 0,
         custom: 0
     };
     
@@ -1213,35 +1211,35 @@ function displayMonthlyStats(shifts) {
             case '中班': stats.afternoon++; break;
             case '晚班': stats.night++; break;
             case '全日班': stats.full++; break;
-            case '排休': stats.dayoff++; break;  // 新增
+            case '排休': stats.dayoff++; break;
             case '自訂': stats.custom++; break;
         }
     });
     
     const html = `
         <div class="stat-card">
-            <div class="stat-label">本月總排班</div>
+            <div class="stat-label">${t('SHIFT_STATS_TOTAL')}</div>
             <div class="stat-value">${stats.total}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">早班</div>
+            <div class="stat-label">${t('SHIFT_TYPE_MORNING')}</div>
             <div class="stat-value" style="color: #ff9800;">${stats.morning}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">中班</div>
+            <div class="stat-label">${t('SHIFT_TYPE_AFTERNOON')}</div>
             <div class="stat-value" style="color: #2196f3;">${stats.afternoon}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">晚班</div>
+            <div class="stat-label">${t('SHIFT_TYPE_NIGHT')}</div>
             <div class="stat-value" style="color: #9c27b0;">${stats.night}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">排休</div>
+            <div class="stat-label">${t('SHIFT_TYPE_DAYOFF')}</div>
             <div class="stat-value" style="color: #757575;">${stats.dayoff}</div>
         </div>
         ${stats.custom > 0 ? `
         <div class="stat-card">
-            <div class="stat-label">自訂班別</div>
+            <div class="stat-label">${t('SHIFT_TYPE_CUSTOM')}</div>
             <div class="stat-value" style="color: #fbc02d;">${stats.custom}</div>
         </div>
         ` : ''}
@@ -1360,18 +1358,17 @@ function showShiftDetail(shiftId) {
         const startTime = formatTimeOnly(shift.startTime);
         const endTime = formatTimeOnly(shift.endTime);
         
-        const detail = `排班詳情:\n\n` +
-              `員工: ${shift.employeeName}\n` +
-              `日期: ${shift.date}\n` +
-              `班別: ${shift.shiftType}\n` +
-              `時間: ${startTime} - ${endTime}\n` +
-              `地點: ${shift.location}\n` +
-              `備註: ${shift.note || '無'}`;
+        const detail = t('SHIFT_DETAIL_TITLE') + ':\n\n' +
+              t('SHIFT_EMPLOYEE_LABEL') + ': ' + shift.employeeName + '\n' +
+              t('SHIFT_DATE_LABEL') + ': ' + shift.date + '\n' +
+              t('SHIFT_TYPE_LABEL') + ': ' + shift.shiftType + '\n' +
+              t('SHIFT_TIME_LABEL') + ': ' + startTime + ' - ' + endTime + '\n' +
+              t('SHIFT_LOCATION_LABEL') + ': ' + shift.location + '\n' +
+              t('SHIFT_NOTE_LABEL') + ': ' + (shift.note || t('SHIFT_NO_NOTE'));
         
         alert(detail);
     }
 }
-
 async function loadShiftDistribution() {
     const distributionContainer = document.getElementById('shift-distribution');
     if (!distributionContainer) return;

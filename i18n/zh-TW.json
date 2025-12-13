@@ -500,5 +500,39 @@
   "BTN_PREV_MONTH": "◀ 上個月",
   "BTN_NEXT_MONTH": "下個月 ▶",
   "BTN_TODAY": "回到今天",
-  "SHIFT_CALENDAR_LOADING": "載入月曆中"
+  "SHIFT_CALENDAR_LOADING": "載入月曆中",
+
+  "SHIFT_NO_DATA": "目前沒有排班資料",
+  "SHIFT_LOAD_FAILED": "載入失敗",
+  "SHIFT_LOAD_ERROR": "載入失敗",
+  
+  "BTN_EDIT": "編輯",
+  
+  "SHIFT_STATS_TOTAL": "本月總排班",
+  
+  "SHIFT_FILL_TIME": "請填寫上班時間和下班時間",
+  "SHIFT_CONFIRM_CROSS_DAY": "下班時間早於上班時間，是否為跨日班別？",
+  "SHIFT_ADD_SUCCESS": "排班新增成功！",
+  "SHIFT_ADD_FAILED": "新增失敗",
+  "SHIFT_UPDATE_SUCCESS": "排班更新成功！",
+  "SHIFT_UPDATE_FAILED": "更新失敗",
+  "SHIFT_DELETE_CONFIRM": "確定要刪除這個排班嗎？",
+  "SHIFT_DELETE_SUCCESS": "排班已刪除",
+  "SHIFT_DELETE_FAILED": "刪除失敗",
+  
+  "SHIFT_NO_EXPORT_DATA": "目前沒有可匯出的資料",
+  "SHIFT_EXPORT_SUCCESS": "匯出成功",
+  
+  "SHIFT_BATCH_CSV_ONLY": "目前只支援 CSV 格式",
+  "SHIFT_BATCH_NO_DATA": "檔案中沒有有效資料",
+  "SHIFT_BATCH_UPLOAD_SUCCESS": "批量上傳成功",
+  "SHIFT_BATCH_UPLOAD_FAILED": "批量上傳失敗",
+  "SHIFT_BATCH_NETWORK_ERROR": "批量上傳失敗：網路錯誤",
+  
+  "SHIFT_DETAIL_TITLE": "排班詳情",
+  "SHIFT_NO_NOTE": "無",
+  
+  "SHIFT_DISTRIBUTION_TITLE": "本月員工排班分布",
+  "SHIFT_TYPE_DISTRIBUTION_TITLE": "本月班別分布",
+  "SHIFT_SHIFTS_COUNT": "{count} 班"
 }
