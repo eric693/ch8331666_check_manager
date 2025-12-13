@@ -534,5 +534,18 @@
   
   "SHIFT_DISTRIBUTION_TITLE": "本月員工排班分布",
   "SHIFT_TYPE_DISTRIBUTION_TITLE": "本月班別分布",
-  "SHIFT_SHIFTS_COUNT": "{count} 班"
+  "SHIFT_SHIFTS_COUNT": "{count} 班",
+
+
+  "SHIFT_LOGIN_REQUIRED": "請先登入",
+  "SHIFT_NO_EMPLOYEE_DATA": "目前沒有員工資料",
+  "SHIFT_LOAD_EMPLOYEES_FAILED": "載入員工列表失敗",
+  "SHIFT_LOAD_EMPLOYEES_ERROR": "載入員工列表失敗",
+  
+  "SHIFT_ADD_ERROR": "新增排班失敗",
+  
+  "SHIFT_EDIT_TITLE": "編輯排班",
+  "BTN_UPDATE_SHIFT": "更新排班",
+
+  "SHIFT_BATCH_UPLOAD_ERROR": "批量上傳失敗"
 }

@@ -204,7 +204,7 @@ async function loadEmployees() {
         // ✅ 步驟 1: 檢查 token
         if (!token) {
             console.error('❌ 沒有 session token');
-            showMessage('請先登入', 'error');
+            showMessage(t('SHIFT_LOGIN_REQUIRED'), 'error');
             return;
         }
         
@@ -255,7 +255,7 @@ async function loadEmployees() {
                 console.warn('   1. 員工工作表沒有資料');
                 console.warn('   2. 所有員工都不是「啟用」狀態');
                 console.warn('   3. 資料格式不正確');
-                showMessage('目前沒有員工資料', 'warning');
+                showMessage(t('SHIFT_NO_EMPLOYEE_DATA'), 'warning');
             } else {
                 console.log('✅ 員工列表預覽（前 5 筆）:');
                 allEmployees.slice(0, 5).forEach((emp, index) => {
@@ -275,7 +275,7 @@ async function loadEmployees() {
         } else {
             console.error('❌ API 回傳失敗');
             console.error('   原因:', data.msg || '未知錯誤');
-            showMessage(data.msg || '載入員工列表失敗', 'error');
+            showMessage(data.msg || t('SHIFT_LOAD_EMPLOYEES_FAILED'), 'error');
         }
         
         console.log('═══════════════════════════════════════');
@@ -287,7 +287,7 @@ async function loadEmployees() {
         console.error('錯誤堆疊:', error.stack);
         console.error('═══════════════════════════════════════');
         
-        showMessage('載入員工列表失敗: ' + error.message, 'error');
+        showMessage(t('SHIFT_LOAD_EMPLOYEES_ERROR') + ': ' + error.message, 'error');
     }
 }
 
@@ -609,7 +609,7 @@ async function addShift() {
     const selectedOption = employeeSelect.selectedOptions[0];
     
     if (!selectedOption || !selectedOption.value) {
-        showMessage('請選擇員工', 'error');
+        showMessage(t('SHIFT_SELECT_EMPLOYEE'), 'error');
         return;
     }
     
@@ -619,13 +619,13 @@ async function addShift() {
     
     // 驗證時間欄位
     if (!startTime || !endTime) {
-        showMessage('請填寫上班時間和下班時間', 'error');
+        showMessage(t('SHIFT_FILL_TIME'), 'error');
         return;
     }
     
     // 驗證時間邏輯(結束時間應該晚於開始時間,除非是跨日班)
     if (startTime >= endTime && endTime !== '00:00') {
-        const confirmCrossDay = confirm('下班時間早於上班時間,是否為跨日班別?');
+        const confirmCrossDay = confirm(t('SHIFT_CONFIRM_CROSS_DAY'));
         if (!confirmCrossDay) {
             return;
         }
@@ -657,16 +657,16 @@ async function addShift() {
         console.log('✅ 新增回應:', data);
         
         if (data.ok) {
-            showMessage('排班新增成功!', 'success');
+            showMessage(t('SHIFT_ADD_SUCCESS'), 'success');
             resetForm();
             switchTab('view');
             loadShifts();
         } else {
-            showMessage(data.msg || '新增失敗', 'error');
+            showMessage(data.msg || t('SHIFT_ADD_FAILED'), 'error');
         }
     } catch (error) {
         console.error('❌ 新增排班失敗:', error);
-        showMessage('新增排班失敗', 'error');
+        showMessage(t('SHIFT_ADD_ERROR'), 'error');
     }
 }
 
@@ -676,7 +676,7 @@ async function editShift(shiftId) {
     
     switchTab('add');
     
-    document.querySelector('#add-tab h2').textContent = '編輯排班';
+    document.querySelector('#add-tab h2').textContent = t('SHIFT_EDIT_TITLE');
     document.getElementById('employee-select').value = shift.employeeId;
     document.getElementById('shift-date').value = shift.date;
     document.getElementById('shift-type').value = shift.shiftType;
@@ -691,7 +691,7 @@ async function editShift(shiftId) {
     if (shiftNoteEl) shiftNoteEl.value = shift.note || '';
     
     const submitBtn = document.querySelector('#add-shift-form button[type="submit"]');
-    submitBtn.textContent = '更新排班';
+    submitBtn.textContent = t('BTN_UPDATE_SHIFT');
     submitBtn.onclick = function(e) {
         e.preventDefault();
         updateShift(shiftId);
@@ -703,7 +703,7 @@ async function updateShift(shiftId) {
     const selectedOption = employeeSelect.selectedOptions[0];
     
     if (!selectedOption || !selectedOption.value) {
-        showMessage('請選擇員工', 'error');
+        showMessage(t('SHIFT_SELECT_EMPLOYEE'), 'error');
         return;
     }
     
@@ -730,21 +730,21 @@ async function updateShift(shiftId) {
         const data = await response.json();
         
         if (data.ok) {
-            showMessage('排班更新成功!', 'success');
+            showMessage(t('SHIFT_UPDATE_SUCCESS'), 'success');
             resetForm();
             switchTab('view');
             loadShifts();
         } else {
-            showMessage(data.msg || '更新失敗', 'error');
+            showMessage(data.msg || t('SHIFT_UPDATE_FAILED'), 'error');
         }
     } catch (error) {
         console.error('❌ 更新排班失敗:', error);
-        showMessage('更新排班失敗', 'error');
+        showMessage(t('SHIFT_UPDATE_ERROR'), 'error');
     }
 }
 
 async function deleteShift(shiftId) {
-    if (!confirm('確定要刪除這個排班嗎?')) return;
+    if (!confirm(t('SHIFT_DELETE_CONFIRM'))) return;
     
     try {
         const token = localStorage.getItem('sessionToken');
@@ -754,14 +754,14 @@ async function deleteShift(shiftId) {
         const data = await response.json();
         
         if (data.ok) {
-            showMessage('排班已刪除', 'success');
+            showMessage(t('SHIFT_DELETE_SUCCESS'), 'success');
             loadShifts();
         } else {
-            showMessage(data.msg || '刪除失敗', 'error');
+            showMessage(data.msg || t('SHIFT_DELETE_FAILED'), 'error');
         }
     } catch (error) {
         console.error('❌ 刪除排班失敗:', error);
-        showMessage('刪除失敗', 'error');
+        showMessage(t('SHIFT_DELETE_ERROR'), 'error');
     }
 }
 
@@ -807,14 +807,14 @@ function clearFilters() {
 
 function exportShifts() {
     if (currentShifts.length === 0) {
-        showMessage('目前沒有可匯出的資料', 'error');
+        showMessage(t('SHIFT_NO_EXPORT_DATA'), 'error');
         return;
     }
     
     const csv = convertToCSV(currentShifts);
     const filename = `排班表_${new Date().toISOString().split('T')[0]}.csv`;
     downloadCSV(csv, filename);
-    showMessage('匯出成功', 'success');
+    showMessage(t('SHIFT_EXPORT_SUCCESS'), 'success');
 }
 
 function convertToCSV(data) {
@@ -850,11 +850,11 @@ function resetForm() {
     const form = document.getElementById('add-shift-form');
     if (form) form.reset();
     
-    document.querySelector('#add-tab h2').textContent = '新增排班';
+    document.querySelector('#add-tab h2').textContent = t('SHIFT_ADD_TITLE');
     
     const submitBtn = document.querySelector('#add-shift-form button[type="submit"]');
     if (submitBtn) {
-        submitBtn.textContent = '新增排班';
+        submitBtn.textContent = t('BTN_ADD_SHIFT');
         submitBtn.onclick = null;
     }
     
@@ -908,7 +908,7 @@ function handleBatchFile(file) {
     if (file.name.endsWith('.csv')) {
         reader.readAsText(file, 'UTF-8');
     } else {
-        showMessage('目前只支援 CSV 格式', 'error');
+        showMessage(t('SHIFT_BATCH_CSV_ONLY'), 'error');
     }
 }
 
@@ -951,7 +951,7 @@ function parseBatchData(content, filename) {
     }
     
     if (data.length === 0) {
-        showMessage('檔案中沒有有效資料', 'error');
+        showMessage(t('SHIFT_BATCH_NO_DATA'), 'error');
         return;
     }
     
@@ -1056,13 +1056,13 @@ async function confirmBatchUpload() {
                 document.body.removeChild(script);
                 
                 if (data.ok) {
-                    showMessage(data.msg || data.message || '批量上傳成功', 'success');
+                    showMessage(data.msg || data.message || t('SHIFT_BATCH_UPLOAD_SUCCESS'), 'success');
                     cancelBatchUpload();
                     switchTab('view');
                     loadShifts();
                     resolve(data);
                 } else {
-                    showMessage(data.msg || data.message || '批量上傳失敗', 'error');
+                    showMessage(data.msg || data.message || t('SHIFT_BATCH_UPLOAD_FAILED'), 'error');
                     reject(new Error(data.msg));
                 }
             };
@@ -1074,7 +1074,7 @@ async function confirmBatchUpload() {
                 console.error('❌ 批量上傳失敗: 無法載入腳本');
                 delete window[callbackName];
                 document.body.removeChild(script);
-                showMessage('批量上傳失敗: 網路錯誤', 'error');
+                showMessage(t('SHIFT_BATCH_NETWORK_ERROR'), 'error');
                 reject(new Error('Network error'));
             };
             
@@ -1083,7 +1083,7 @@ async function confirmBatchUpload() {
         
     } catch (error) {
         console.error('❌ 批量上傳失敗:', error);
-        showMessage('批量上傳失敗: ' + error.message, 'error');
+        showMessage(t('SHIFT_BATCH_UPLOAD_ERROR') + ': ' + error.message, 'error');
     }
 }
 

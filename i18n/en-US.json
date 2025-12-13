@@ -517,8 +517,18 @@
   
   "SHIFT_DISTRIBUTION_TITLE": "Monthly Employee Shift Distribution",
   "SHIFT_TYPE_DISTRIBUTION_TITLE": "Monthly Shift Type Distribution",
-  "SHIFT_SHIFTS_COUNT": "{count} shifts"
+  "SHIFT_SHIFTS_COUNT": "{count} shifts",
 
-
+  "SHIFT_LOGIN_REQUIRED": "Please log in first",
+  "SHIFT_NO_EMPLOYEE_DATA": "No employee data available",
+  "SHIFT_LOAD_EMPLOYEES_FAILED": "Failed to load employee list",
+  "SHIFT_LOAD_EMPLOYEES_ERROR": "Failed to load employee list",
+  
+  "SHIFT_ADD_ERROR": "Failed to add shift",
+  
+  "SHIFT_EDIT_TITLE": "Edit Shift",
+  "BTN_UPDATE_SHIFT": "Update Shift",
+  
+  "SHIFT_BATCH_UPLOAD_ERROR": "Batch upload failed"
 
 }
