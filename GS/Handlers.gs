@@ -59,14 +59,57 @@ function handleGetAbnormalRecords(params) {
   return { ok: true, records: abnormalResults };
 }
 
+
+/**
+ * ✅ 處理取得出勤詳細資料（完整修正版 - 含打卡+請假+加班）
+ */
 function handleGetAttendanceDetails(params) {
   const { month, userId } = params;
-  if (!month) return { ok: false, code: "ERR_MISSING_MONTH" };
   
-  const records = getAttendanceRecords(month, userId);
-  const results = checkAttendance(records);  
+  Logger.log('═══════════════════════════════════════');
+  Logger.log('📋 handleGetAttendanceDetails 開始');
+  Logger.log('   month: ' + month);
+  Logger.log('   userId: ' + userId);
+  Logger.log('═══════════════════════════════════════');
   
-  return { ok: true, records: results };
+  if (!month) {
+    Logger.log('❌ 缺少 month 參數');
+    return { ok: false, code: "ERR_MISSING_MONTH" };
+  }
+  
+  try {
+    // ⭐⭐⭐ 關鍵修正：直接呼叫 DbOperations.gs 中的 getAttendanceDetails
+    // 這個函數會自動合併 打卡 + 請假 + 加班 資料
+    const result = getAttendanceDetails(month, userId);
+    
+    Logger.log('✅ 資料合併完成');
+    Logger.log('   ok: ' + result.ok);
+    Logger.log('   records 數量: ' + (result.records ? result.records.length : 0));
+    
+    // 檢查是否有請假和加班資料
+    if (result.ok && result.records) {
+      const hasLeave = result.records.some(r => r.leave);
+      const hasOvertime = result.records.some(r => r.overtime);
+      
+      Logger.log('   包含請假: ' + (hasLeave ? '是' : '否'));
+      Logger.log('   包含加班: ' + (hasOvertime ? '是' : '否'));
+    }
+    
+    Logger.log('═══════════════════════════════════════');
+    
+    return result;
+    
+  } catch (error) {
+    Logger.log('❌ handleGetAttendanceDetails 錯誤: ' + error);
+    Logger.log('   錯誤堆疊: ' + error.stack);
+    Logger.log('═══════════════════════════════════════');
+    
+    return { 
+      ok: false, 
+      code: "INTERNAL_ERROR",
+      msg: error.message 
+    };
+  }
 }
 
 // ==================== 地點管理相關 ====================
@@ -1766,17 +1809,109 @@ function handleInitApp(params) {
     const records = getAttendanceRecords(month, userId);
     const abnormalResults = checkAttendanceAbnormal(records);
     
-    // 3. 返回合併結果
+    // 👇 3. 取得加班記錄（新增）
+    const overtimeRecords = getApprovedOvertimeRecords(userId, month);
+    
+    // 👇 4. 將加班記錄加入異常記錄陣列
+    overtimeRecords.forEach(ot => {
+      abnormalResults.push({
+        date: ot.date,
+        reason: 'STATUS_OVERTIME_APPROVED',
+        punchTypes: null,
+        overtime: {
+          startTime: ot.startTime,
+          endTime: ot.endTime,
+          hours: ot.hours,
+          reason: ot.reason
+        }
+      });
+    });
+    
+    // 5. 返回合併結果
     return {
       ok: true,
       user: session.user,
       code: session.code,
       params: session.params,
-      abnormalRecords: abnormalResults
+      abnormalRecords: abnormalResults  // 現在包含打卡異常 + 加班記錄
     };
     
   } catch (error) {
     Logger.log('❌ handleInitApp 錯誤: ' + error);
     return { ok: false, code: "INTERNAL_ERROR", msg: error.message };
+  }
+}
+// function handleInitApp(params) {
+//   try {
+//     const sessionToken = params.token;
+    
+//     if (!sessionToken) {
+//       return { ok: false, code: "MISSING_SESSION_TOKEN" };
+//     }
+    
+//     // 1. 檢查 Session
+//     const session = checkSession_(sessionToken);
+    
+//     if (!session.ok) {
+//       return { ok: false, code: session.code };
+//     }
+    
+//     // 2. 取得異常記錄
+//     const now = new Date();
+//     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+//     const userId = session.user.userId;
+    
+//     const records = getAttendanceRecords(month, userId);
+//     const abnormalResults = checkAttendanceAbnormal(records);
+    
+//     // 3. 返回合併結果
+//     return {
+//       ok: true,
+//       user: session.user,
+//       code: session.code,
+//       params: session.params,
+//       abnormalRecords: abnormalResults
+//     };
+    
+//   } catch (error) {
+//     Logger.log('❌ handleInitApp 錯誤: ' + error);
+//     return { ok: false, code: "INTERNAL_ERROR", msg: error.message };
+//   }
+// }
+
+
+/**
+ * 處理取得員工月度打卡分析資料
+ */
+function handleGetEmployeeMonthlyPunchData(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權或 session 已過期" };
+    }
+    
+    // 驗證管理員權限
+    const session = checkSession_(params.token);
+    if (!session.ok || session.user.dept !== '管理員') {
+      return { ok: false, msg: "需要管理員權限" };
+    }
+    
+    if (!params.employeeId || !params.yearMonth) {
+      return { ok: false, msg: "缺少必要參數" };
+    }
+    
+    const result = getEmployeeMonthlyPunchData(params.employeeId, params.yearMonth);
+    
+    return {
+      ok: result.success,
+      data: result.data,
+      msg: result.message || '查詢成功',
+      employeeId: result.employeeId,
+      yearMonth: result.yearMonth,
+      totalDays: result.totalDays
+    };
+    
+  } catch (error) {
+    Logger.log('❌ handleGetEmployeeMonthlyPunchData 錯誤: ' + error);
+    return { ok: false, msg: error.message };
   }
 }

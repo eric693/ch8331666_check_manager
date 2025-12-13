@@ -1281,11 +1281,7 @@ async function renderDailyRecords(dateKey) {
     // ✨ 改進的 renderRecords 函數
     function renderRecords(records) {
         const dailyRecords = records.filter(record => record.date === dateKey);
-        // ⭐⭐⭐ 加入除錯 log
-        console.log('🔍 renderRecords 被呼叫');
-        console.log('   dateKey:', dateKey);
-        console.log('   總記錄數:', records.length);
-        console.log('   當日記錄數:', dailyRecords.length);
+        
         if (dailyRecords.length > 0) {
             dailyRecordsEmpty.style.display = 'none';
             
@@ -1345,7 +1341,38 @@ async function renderDailyRecords(dateKey) {
                     `;
                 }
                 
-                // 🏖️ 請假資訊區塊（緊接在打卡記錄下方）
+                // ⏰ 加班資訊區塊（緊接在打卡記錄下方）
+                let overtimeHtml = '';
+                if (recordData.overtime) {
+                    const ot = recordData.overtime;
+                    overtimeHtml = `
+                        <div class="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg p-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <h5 class="text-sm font-semibold flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                    </svg>
+                                    ⏰ 加班時段
+                                </h5>
+                                <span class="px-2 py-1 bg-orange-600 text-white text-xs font-bold rounded-full">
+                                    ${ot.hours} 小時
+                                </span>
+                            </div>
+                            <div class="space-y-1 pl-6">
+                                <p class="text-sm text-orange-700 dark:text-orange-400">
+                                    時間：<span class="font-semibold">${ot.startTime} - ${ot.endTime}</span>
+                                </p>
+                                ${ot.reason ? `
+                                    <p class="text-sm text-orange-600 dark:text-orange-300">
+                                        原因：${ot.reason}
+                                    </p>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 🏖️ 請假資訊區塊（緊接在加班記錄下方）
                 let leaveHtml = '';
                 if (recordData.leave) {
                     const leave = recordData.leave;
@@ -1402,37 +1429,6 @@ async function renderDailyRecords(dateKey) {
                     `;
                 }
                 
-                // ⏰ 加班資訊區塊
-                let overtimeHtml = '';
-                if (recordData.overtime) {
-                    const ot = recordData.overtime;
-                    overtimeHtml = `
-                        <div class="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg p-3">
-                            <div class="flex items-center justify-between mb-2">
-                                <h5 class="text-sm font-semibold flex items-center">
-                                    <svg class="w-4 h-4 mr-2 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                                    </svg>
-                                    ⏰ 加班時段
-                                </h5>
-                                <span class="px-2 py-1 bg-orange-600 text-white text-xs font-bold rounded-full">
-                                    ${ot.hours} 小時
-                                </span>
-                            </div>
-                            <div class="space-y-1 pl-6">
-                                <p class="text-sm text-orange-700 dark:text-orange-400">
-                                    時間：<span class="font-semibold">${ot.startTime} - ${ot.endTime}</span>
-                                </p>
-                                ${ot.reason ? `
-                                    <p class="text-sm text-orange-600 dark:text-orange-300">
-                                        原因：${ot.reason}
-                                    </p>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `;
-                }
-                
                 // 📊 系統判斷狀態
                 const statusHtml = `
                     <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-2 text-center">
@@ -1443,8 +1439,8 @@ async function renderDailyRecords(dateKey) {
                     </div>
                 `;
                 
-                // 組合所有區塊
-                li.innerHTML = titleHtml + recordHtml + leaveHtml + overtimeHtml + statusHtml;
+                // ⭐ 組合所有區塊（順序：標題 → 打卡 → 加班 → 請假 → 狀態）
+                li.innerHTML = titleHtml + recordHtml + overtimeHtml + leaveHtml + statusHtml;
                 dailyRecordsList.appendChild(li);
                 renderTranslations(li);
             });

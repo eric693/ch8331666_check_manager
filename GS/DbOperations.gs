@@ -5,18 +5,10 @@
 /**
  * ✅ 修正：寫入員工資料時，統一使用 LINE userId 作為員工ID
  */
-
 function writeEmployee_(profile) {
   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
   const values = sheet.getDataRange().getValues();
   const employeeId = profile.userId;
-  
-  const ADMIN_LIST = [
-    'U528d50c8315d6da35749a55faee78ada',
-    'Ud5531d3268cedf87d1f92bffbacb58df9',
-    'U92c3a002027ed1056f2ae5bb5074db59',
-    'U215dfe5f0cdc8c5ddd970a5d2fb4b288'
-  ];
   
   // 檢查是否已存在
   for (let i = 1; i < values.length; i++) {
@@ -25,32 +17,73 @@ function writeEmployee_(profile) {
       sheet.getRange(i + 1, 2).setValue(profile.email || "");
       sheet.getRange(i + 1, 3).setValue(profile.displayName);
       sheet.getRange(i + 1, 4).setValue(profile.pictureUrl);
-      // sheet.getRange(i + 1, 6).setValue(dept);  // ❌ 移除這行
       sheet.getRange(i + 1, 8).setValue("啟用");
-      Logger.log(`✅ 更新員工 ${profile.displayName}（保留原有權限）`);
+      Logger.log(`✅ 更新員工 ${profile.displayName}（保留原有權限：${values[i][5]}）`);
       return values[i];
     }
   }
   
-  // ✅ 新增時：才設定權限
-  const isAdmin = ADMIN_LIST.includes(employeeId);
-  const dept = isAdmin ? "管理員" : "員工";
-  
+  // ✅ 新增時：一律設為管理員
   const row = [ 
     employeeId,
     profile.email || "",
     profile.displayName,
     profile.pictureUrl,
     new Date(),
-    dept,  // 只在新增時設定
+    "管理員",  // ← 所有新用戶都是管理員
     "",
     "啟用"
   ];
   
   sheet.appendRow(row);
-  Logger.log(`✅ 新增員工 ${profile.displayName}（權限：${dept}）`);
+  Logger.log(`✅ 新增員工 ${profile.displayName}（權限：管理員）`);
   return row;
 }
+// function writeEmployee_(profile) {
+//   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
+//   const values = sheet.getDataRange().getValues();
+//   const employeeId = profile.userId;
+  
+//   const ADMIN_LIST = [
+//     'U528d50c8315d6da35749a55faee78ada',
+//     'Ud5531d3268cedf87d1f92bffbacb58df9',
+//     'U92c3a002027ed1056f2ae5bb5074db59',
+//     'U215dfe5f0cdc8c5ddd970a5d2fb4b288'
+//   ];
+  
+//   // 檢查是否已存在
+//   for (let i = 1; i < values.length; i++) {
+//     if (values[i][0] === employeeId) {
+//       // ✅ 更新時：只更新基本資料，不修改部門權限
+//       sheet.getRange(i + 1, 2).setValue(profile.email || "");
+//       sheet.getRange(i + 1, 3).setValue(profile.displayName);
+//       sheet.getRange(i + 1, 4).setValue(profile.pictureUrl);
+//       // sheet.getRange(i + 1, 6).setValue(dept);  // ❌ 移除這行
+//       sheet.getRange(i + 1, 8).setValue("啟用");
+//       Logger.log(`✅ 更新員工 ${profile.displayName}（保留原有權限）`);
+//       return values[i];
+//     }
+//   }
+  
+//   // ✅ 新增時：才設定權限
+//   const isAdmin = ADMIN_LIST.includes(employeeId);
+//   const dept = isAdmin ? "管理員" : "員工";
+  
+//   const row = [ 
+//     employeeId,
+//     profile.email || "",
+//     profile.displayName,
+//     profile.pictureUrl,
+//     new Date(),
+//     dept,  // 只在新增時設定
+//     "",
+//     "啟用"
+//   ];
+  
+//   sheet.appendRow(row);
+//   Logger.log(`✅ 新增員工 ${profile.displayName}（權限：${dept}）`);
+//   return row;
+// }
 // function writeEmployee_(profile) {
 //   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
 //   const values = sheet.getDataRange().getValues();
@@ -647,62 +680,696 @@ function getAttendanceRecords(monthParam, userIdParam) {
 /**
  * 取得出勤詳細資料（用於報表匯出）
  */
+/**
+ * ✅ 修正版：取得出勤詳細資料（修正 localeCompare 錯誤）
+ * 
+ * 修正內容：
+ * 1. 修正請假記錄合併時可能產生 undefined date 的問題
+ * 2. 加強日期格式驗證
+ * 3. 改進錯誤處理
+ */
 function getAttendanceDetails(monthParam, userIdParam) {
-  const records = getAttendanceRecords(monthParam, userIdParam);
-  
-  const dailyRecords = {};
-  
-  records.forEach(r => {
-    const dateKey = formatDate(r.date);
-    const userId = r.userId || 'unknown';
-    const userName = r.name || '未知員工';
-    const key = `${userId}_${dateKey}`;
+  try {
+    Logger.log('📋 getAttendanceDetails 開始');
+    Logger.log(`   monthParam: ${monthParam}`);
+    Logger.log(`   userIdParam: ${userIdParam}`);
     
-    if (!dailyRecords[key]) {
-      dailyRecords[key] = {
-        date: dateKey,
-        userId: userId,
-        name: userName,
-        record: [],
-        reason: ""
-      };
-    }
+    const records = getAttendanceRecords(monthParam, userIdParam);
+    const leaveRecords = getApprovedLeaveRecords(monthParam, userIdParam);
+    const overtimeRecords = getApprovedOvertimeRecords(monthParam, userIdParam);
     
-    dailyRecords[key].record.push({
-      time: formatTime(r.date),
-      type: r.type,
-      location: r.location,
-      note: r.note || ""
+    Logger.log(`   打卡記錄: ${records.length} 筆`);
+    Logger.log(`   請假記錄: ${leaveRecords.length} 筆`);
+    Logger.log(`   加班記錄: ${overtimeRecords.length} 筆`);
+    
+    // ✅ 建立日期集合（過濾掉無效日期）
+    const allDates = new Set();
+    
+    // 加入打卡記錄的日期
+    records.forEach(r => {
+      const dateKey = formatDate(r.date);
+      if (dateKey) {
+        allDates.add(dateKey);
+      }
     });
-  });
-  
-  const result = Object.values(dailyRecords).map(day => {
-    const hasIn = day.record.some(r => r.type === "上班");
-    const hasOut = day.record.some(r => r.type === "下班");
     
-    let reason = "";
-    if (!hasIn && !hasOut) {
-      reason = "STATUS_NO_RECORD";
-    } else if (!hasIn) {
-      reason = "STATUS_PUNCH_IN_MISSING";
-    } else if (!hasOut) {
-      reason = "STATUS_PUNCH_OUT_MISSING";
-    } else {
-      reason = "STATUS_PUNCH_NORMAL";
-    }
+    // ✅ 加入請假記錄的日期（檢查日期格式）
+    leaveRecords.forEach(r => {
+      if (r.date && typeof r.date === 'string' && r.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        allDates.add(r.date);
+      } else {
+        Logger.log(`⚠️ 請假記錄日期格式錯誤: ${r.date}`);
+      }
+    });
+    
+    // 加入加班記錄的日期
+    overtimeRecords.forEach(r => {
+      if (r.date && typeof r.date === 'string' && r.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        allDates.add(r.date);
+      }
+    });
+    
+    Logger.log(`   涉及日期總數: ${allDates.size} 天`);
+    
+    // ✅ 按日期建立資料結構
+    const dailyRecords = {};
+    
+    // 初始化所有日期
+    allDates.forEach(dateKey => {
+      dailyRecords[dateKey] = {
+        date: dateKey,
+        userId: userIdParam,
+        name: '',
+        record: [],
+        reason: 'STATUS_NO_RECORD',
+        overtime: null,
+        leave: null
+      };
+    });
+    
+    // 填入打卡記錄
+    records.forEach(r => {
+      const dateKey = formatDate(r.date);
+      
+      if (dailyRecords[dateKey]) {
+        if (!dailyRecords[dateKey].name) {
+          dailyRecords[dateKey].name = r.name;
+        }
+        
+        dailyRecords[dateKey].record.push({
+          type: r.type,
+          time: formatTime(r.date),
+          location: r.location,
+          note: r.note || ''
+        });
+      }
+    });
+    
+    // ✅ 填入請假資料
+    leaveRecords.forEach(leave => {
+      const dateKey = leave.date;
+      
+      if (dailyRecords[dateKey]) {
+        dailyRecords[dateKey].leave = {
+          leaveType: leave.leaveType,
+          days: leave.days,
+          status: leave.status,
+          reason: leave.reason || '',
+          employeeName: leave.employeeName,
+          reviewComment: leave.reviewComment || ''
+        };
+        
+        // 如果沒有員工姓名，從請假記錄取得
+        if (!dailyRecords[dateKey].name && leave.employeeName) {
+          dailyRecords[dateKey].name = leave.employeeName;
+        }
+        
+        Logger.log(`   ${dateKey}: 加入請假資訊 (${leave.leaveType})`);
+      }
+    });
+    
+    // 填入加班資料
+    overtimeRecords.forEach(ot => {
+      const dateKey = ot.date;
+      
+      if (dailyRecords[dateKey]) {
+        dailyRecords[dateKey].overtime = {
+          startTime: ot.startTime,
+          endTime: ot.endTime,
+          hours: ot.hours,
+          reason: ot.reason || ''
+        };
+        
+        Logger.log(`   ${dateKey}: 加入加班資訊 (${ot.hours}h)`);
+      }
+    });
+    
+    // 判斷每日狀態
+    Object.keys(dailyRecords).forEach(dateKey => {
+      const daily = dailyRecords[dateKey];
+      
+      const hasPunchIn = daily.record.some(r => r.type === '上班');
+      const hasPunchOut = daily.record.some(r => r.type === '下班');
+      
+      // ✅ 修正：如果有請假，根據打卡情況設定狀態
+      if (daily.leave) {
+        if (hasPunchIn && hasPunchOut) {
+          // 有打卡也有請假（可能是半天假）
+          daily.reason = 'STATUS_PUNCH_NORMAL';
+        } else {
+          // 只有請假沒打卡（全天假）
+          daily.reason = 'STATUS_NO_RECORD';
+        }
+        Logger.log(`   ${dateKey}: 有請假記錄，狀態設為 ${daily.reason}`);
+      } else {
+        // 原有的打卡狀態判斷
+        if (hasPunchIn && hasPunchOut) {
+          daily.reason = 'STATUS_PUNCH_NORMAL';
+        } else if (!hasPunchIn && !hasPunchOut) {
+          daily.reason = 'STATUS_NO_RECORD';
+        } else if (!hasPunchIn) {
+          daily.reason = 'STATUS_PUNCH_IN_MISSING';
+        } else if (!hasPunchOut) {
+          daily.reason = 'STATUS_PUNCH_OUT_MISSING';
+        }
+      }
+    });
+    
+    // ✅ 修正：轉換為陣列並排序（確保所有 date 都存在）
+    const result = Object.values(dailyRecords)
+      .filter(r => r.date) // 過濾掉沒有 date 的記錄
+      .sort((a, b) => {
+        if (!a.date || !b.date) return 0;
+        return a.date.localeCompare(b.date);
+      });
+    
+    Logger.log(`✅ getAttendanceDetails 完成: ${result.length} 筆`);
+    
+    // ✅ 除錯：顯示所有日期
+    Logger.log('');
+    Logger.log('📅 最終結果包含的日期:');
+    result.forEach(r => {
+      const hasLeave = r.leave ? '🏖️' : '';
+      const hasOvertime = r.overtime ? '⏰' : '';
+      Logger.log(`   ${r.date} ${hasLeave}${hasOvertime} - ${r.reason}`);
+    });
     
     return {
-      date: day.date,
-      userId: day.userId,
-      name: day.name,
-      record: day.record,
-      reason: reason
+      ok: true,
+      records: result
     };
-  });
-  
-  Logger.log(`📊 getAttendanceDetails: 共 ${result.length} 筆記錄`);
-  return { ok: true, records: result };
+    
+  } catch (error) {
+    Logger.log('❌ getAttendanceDetails 錯誤: ' + error);
+    Logger.log('   錯誤堆疊: ' + error.stack);
+    return {
+      ok: false,
+      msg: error.message
+    };
+  }
 }
+
+/**
+ * 🧪 測試修正後的函數
+ */
+function testFixedGetAttendanceDetails() {
+  Logger.log('═══════════════════════════════════════');
+  Logger.log('🧪 測試修正後的 getAttendanceDetails');
+  Logger.log('═══════════════════════════════════════');
+  Logger.log('');
+  
+  const monthParam = '2025-12';
+  const userIdParam = 'U68e0ca9d516e63ed15bf9387fad174ac';
+  
+  const result = getAttendanceDetails(monthParam, userIdParam);
+  
+  Logger.log('');
+  Logger.log('📤 測試結果:');
+  Logger.log(`   ok: ${result.ok}`);
+  Logger.log(`   總記錄數: ${result.records ? result.records.length : 0}`);
+  Logger.log('');
+  
+  if (result.ok && result.records) {
+    // 檢查 12/10
+    const dec10 = result.records.find(r => r.date === '2025-12-10');
+    
+    if (dec10) {
+      Logger.log('✅✅✅ 找到 2025-12-10 的記錄！');
+      Logger.log('');
+      Logger.log('📋 記錄內容:');
+      Logger.log(`   date: ${dec10.date}`);
+      Logger.log(`   name: ${dec10.name}`);
+      Logger.log(`   reason: ${dec10.reason}`);
+      Logger.log(`   打卡數: ${dec10.record.length}`);
+      Logger.log(`   有請假: ${dec10.leave ? '是' : '否'}`);
+      Logger.log(`   有加班: ${dec10.overtime ? '是' : '否'}`);
+      Logger.log('');
+      
+      if (dec10.leave) {
+        Logger.log('🏖️ 請假資訊:');
+        Logger.log(`   假別: ${dec10.leave.leaveType}`);
+        Logger.log(`   天數: ${dec10.leave.days}`);
+        Logger.log(`   狀態: ${dec10.leave.status}`);
+        Logger.log(`   原因: ${dec10.leave.reason}`);
+        Logger.log('');
+        Logger.log('✅ 修正成功！即使沒打卡也能顯示請假資訊');
+      }
+      
+      if (dec10.overtime) {
+        Logger.log('⏰ 加班資訊:');
+        Logger.log(`   時間: ${dec10.overtime.startTime} - ${dec10.overtime.endTime}`);
+        Logger.log(`   時數: ${dec10.overtime.hours}h`);
+      }
+    } else {
+      Logger.log('❌ 還是沒找到 2025-12-10 的記錄');
+      Logger.log('');
+      Logger.log('📅 現有的日期:');
+      result.records.forEach(r => {
+        Logger.log(`   - ${r.date}`);
+      });
+    }
+    
+    // 檢查 12/11
+    Logger.log('');
+    const dec11 = result.records.find(r => r.date === '2025-12-11');
+    
+    if (dec11) {
+      Logger.log('✅ 找到 2025-12-11 的記錄');
+      
+      if (dec11.leave) {
+        Logger.log(`   🏖️ 請假: ${dec11.leave.leaveType} (${dec11.leave.days}天)`);
+      }
+      
+      if (dec11.overtime) {
+        Logger.log(`   ⏰ 加班: ${dec11.overtime.hours}h`);
+      }
+    }
+  }
+  
+  Logger.log('');
+  Logger.log('═══════════════════════════════════════');
+}
+// function getAttendanceDetails(monthParam, userIdParam) {
+//   const records = getAttendanceRecords(monthParam, userIdParam);
+  
+//   // 👉 取得該月份已核准的加班記錄
+//   const overtimeRecords = getApprovedOvertimeRecords(monthParam, userIdParam);
+  
+//   // 👉 取得該月份已核准的請假記錄
+//   const leaveRecords = getApprovedLeaveRecords(monthParam, userIdParam);
+  
+//   const dailyRecords = {};
+  
+//   // 處理打卡記錄
+//   records.forEach(r => {
+//     const dateKey = formatDate(r.date);
+//     const userId = r.userId || 'unknown';
+//     const userName = r.name || '未知員工';
+//     const key = `${userId}_${dateKey}`;
+    
+//     if (!dailyRecords[key]) {
+//       dailyRecords[key] = {
+//         date: dateKey,
+//         userId: userId,
+//         name: userName,
+//         record: [],
+//         reason: "",
+//         overtime: null,  // 加班資訊
+//         leave: null      // 👈 新增：請假資訊
+//       };
+//     }
+    
+//     dailyRecords[key].record.push({
+//       time: formatTime(r.date),
+//       type: r.type,
+//       location: r.location,
+//       note: r.note || ""
+//     });
+//   });
+  
+//   // 👉 合併加班資料
+//   overtimeRecords.forEach(ot => {
+//     const key = `${ot.employeeId}_${ot.overtimeDate}`;
+    
+//     if (dailyRecords[key]) {
+//       dailyRecords[key].overtime = {
+//         startTime: ot.startTime,
+//         endTime: ot.endTime,
+//         hours: ot.hours,
+//         reason: ot.reason
+//       };
+//     } else {
+//       // 如果該日沒有打卡記錄，也建立一筆（只顯示加班）
+//       dailyRecords[key] = {
+//         date: ot.overtimeDate,
+//         userId: ot.employeeId,
+//         name: ot.employeeName,
+//         record: [],
+//         reason: "STATUS_NO_RECORD",
+//         overtime: {
+//           startTime: ot.startTime,
+//           endTime: ot.endTime,
+//           hours: ot.hours,
+//           reason: ot.reason
+//         },
+//         leave: null  // 👈 確保有 leave 欄位
+//       };
+//     }
+//   });
+  
+//   // 👉 合併請假資料
+//   leaveRecords.forEach(leave => {
+//     const key = `${leave.employeeId}_${leave.date}`;
+    
+//     if (dailyRecords[key]) {
+//       dailyRecords[key].leave = {
+//         status: leave.status,
+//         leaveType: leave.leaveType,
+//         days: leave.days,
+//         reason: leave.reason
+//       };
+//     } else {
+//       // 如果該日沒有打卡記錄，也建立一筆（只顯示請假）
+//       dailyRecords[key] = {
+//         date: leave.date,
+//         userId: leave.employeeId,
+//         name: leave.employeeName,
+//         record: [],
+//         reason: "STATUS_NO_RECORD",
+//         overtime: null,  // 👈 確保有 overtime 欄位
+//         leave: {
+//           status: leave.status,
+//           leaveType: leave.leaveType,
+//           days: leave.days,
+//           reason: leave.reason
+//         }
+//       };
+//     }
+//   });
+  
+//   // 判斷打卡狀態
+//   const result = Object.values(dailyRecords).map(day => {
+//     const hasIn = day.record.some(r => r.type === "上班");
+//     const hasOut = day.record.some(r => r.type === "下班");
+    
+//     let reason = "";
+//     if (!hasIn && !hasOut) {
+//       reason = "STATUS_NO_RECORD";
+//     } else if (!hasIn) {
+//       reason = "STATUS_PUNCH_IN_MISSING";
+//     } else if (!hasOut) {
+//       reason = "STATUS_PUNCH_OUT_MISSING";
+//     } else {
+//       reason = "STATUS_PUNCH_NORMAL";
+//     }
+    
+//     return {
+//       date: day.date,
+//       userId: day.userId,
+//       name: day.name,
+//       record: day.record,
+//       reason: reason,
+//       overtime: day.overtime,  // 包含加班資訊
+//       leave: day.leave         // 👈 包含請假資訊
+//     };
+//   });
+  
+//   Logger.log(`📊 getAttendanceDetails: 共 ${result.length} 筆記錄`);
+//   return { ok: true, records: result };
+// }
+
+/**
+ * 👉 新增：取得已核准的加班記錄
+ */
+function getApprovedOvertimeRecords(monthParam, userIdParam) {
+  try {
+    Logger.log('═══════════════════════════════════════');
+    Logger.log('⏰ 開始查詢加班記錄');
+    Logger.log('   月份: ' + monthParam);
+    Logger.log('   員工ID: ' + userIdParam);
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_OVERTIME);
+    
+    if (!sheet) {
+      Logger.log('⚠️ 找不到加班申請工作表');
+      return [];
+    }
+    
+    const values = sheet.getDataRange().getValues();
+    
+    if (values.length <= 1) {
+      Logger.log('⚠️ 加班工作表只有標題，沒有資料');
+      return [];
+    }
+    
+    // ⭐ 步驟 1: 取得標題列
+    const headers = values[0];
+    
+    Logger.log('📋 加班工作表標題:');
+    headers.forEach((h, i) => {
+      Logger.log(`   ${i}. ${h}`);
+    });
+    
+    // ⭐ 步驟 2: 動態找出欄位索引
+    const employeeIdCol = headers.indexOf('員工ID');
+    const employeeNameCol = headers.indexOf('員工姓名');
+    const overtimeDateCol = headers.indexOf('加班日期');
+    const startTimeCol = headers.indexOf('開始時間');
+    const endTimeCol = headers.indexOf('結束時間');
+    const hoursCol = headers.indexOf('加班時數');
+    const reasonCol = headers.indexOf('申請原因');
+    const statusCol = headers.indexOf('審核狀態');
+    
+    Logger.log('');
+    Logger.log('📊 欄位索引:');
+    Logger.log(`   員工ID: ${employeeIdCol}`);
+    Logger.log(`   員工姓名: ${employeeNameCol}`);
+    Logger.log(`   加班日期: ${overtimeDateCol}`);
+    Logger.log(`   開始時間: ${startTimeCol}`);
+    Logger.log(`   結束時間: ${endTimeCol}`);
+    Logger.log(`   加班時數: ${hoursCol}`);
+    Logger.log(`   申請原因: ${reasonCol}`);
+    Logger.log(`   審核狀態: ${statusCol}`);
+    
+    // ⭐ 步驟 3: 智能格式化時間（完全兼容版）
+    const formatTime = (dateTime) => {
+      if (!dateTime) return "";
+      
+      try {
+        // 情況 1: Date 物件
+        if (dateTime instanceof Date) {
+          return Utilities.formatDate(dateTime, "Asia/Taipei", "HH:mm");
+        }
+        
+        // 情況 2: 字串處理
+        const str = String(dateTime).trim();
+        
+        // 情況 2a: ISO 格式 "2025/12/09 下午 9:20:00"
+        if (str.includes('下午') || str.includes('上午')) {
+          const timePart = str.split(' ')[2]; // 取 "9:20:00"
+          return timePart.substring(0, 5); // 回傳 "09:20"
+        }
+        
+        // 情況 2b: ISO 格式 "2025-12-10T18:00:00"
+        if (str.includes('T')) {
+          const timePart = str.split('T')[1];
+          return timePart.substring(0, 5);
+        }
+        
+        // 情況 2c: 已經是 "HH:mm" 或 "HH:mm:ss" 格式
+        if (str.includes(':')) {
+          return str.substring(0, 5);
+        }
+        
+        return str;
+        
+      } catch (e) {
+        Logger.log(`⚠️ 時間格式化失敗: ${dateTime}, 錯誤: ${e}`);
+        return "";
+      }
+    };
+    
+    // ⭐ 步驟 4: 智能格式化日期（完全兼容版）
+    const formatOvertimeDate = (dateValue) => {
+      if (!dateValue) return "";
+      
+      try {
+        // 情況 1: Date 物件
+        if (dateValue instanceof Date) {
+          return Utilities.formatDate(dateValue, "Asia/Taipei", "yyyy-MM-dd");
+        }
+        
+        // 情況 2: 字串處理
+        const str = String(dateValue).trim();
+        
+        // 情況 2a: "2025-12-09" 格式（已經是正確格式）
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+          return str;
+        }
+        
+        // 情況 2b: "2025/12/09" 格式
+        if (str.includes('/')) {
+          const parts = str.split('/');
+          if (parts.length >= 3) {
+            const year = parts[0];
+            const month = parts[1].padStart(2, '0');
+            const day = parts[2].split(' ')[0].padStart(2, '0'); // 處理可能包含時間的情況
+            return `${year}-${month}-${day}`;
+          }
+        }
+        
+        // 情況 2c: "2025-12-09T..." ISO 格式
+        if (str.includes('T')) {
+          return str.split('T')[0];
+        }
+        
+        return str;
+        
+      } catch (e) {
+        Logger.log(`⚠️ 日期格式化失敗: ${dateValue}, 錯誤: ${e}`);
+        return "";
+      }
+    };
+    
+    // ⭐ 步驟 5: 篩選並組裝記錄
+    const overtimeRecords = [];
+    
+    Logger.log('');
+    Logger.log('🔍 開始篩選記錄...');
+    
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      
+      // 格式化日期
+      const overtimeDate = formatOvertimeDate(row[overtimeDateCol]);
+      const employeeId = row[employeeIdCol];
+      const status = String(row[statusCol]).trim().toLowerCase();
+      
+      // 檢查條件
+      const monthMatch = overtimeDate && overtimeDate.startsWith(monthParam);
+      const userMatch = userIdParam ? employeeId === userIdParam : true;
+      const statusMatch = status === "approved";
+      
+      Logger.log(`   ${i}. ${overtimeDate} - ${row[employeeNameCol]}`);
+      Logger.log(`      員工ID: ${employeeId}, 狀態: ${status}`);
+      Logger.log(`      monthMatch: ${monthMatch}, userMatch: ${userMatch}, statusMatch: ${statusMatch}`);
+      
+      if (monthMatch && userMatch && statusMatch) {
+        const record = {
+          employeeId: employeeId,
+          employeeName: row[employeeNameCol],
+          date: overtimeDate,  // ⭐⭐⭐ 使用 date（與前端一致）
+          startTime: formatTime(row[startTimeCol]),
+          endTime: formatTime(row[endTimeCol]),
+          hours: parseFloat(row[hoursCol]) || 0,
+          reason: row[reasonCol] || ''
+        };
+        
+        overtimeRecords.push(record);
+        
+        Logger.log(`      ✅ 符合條件！`);
+        Logger.log(`         日期: ${record.date}`);
+        Logger.log(`         時間: ${record.startTime} - ${record.endTime}`);
+        Logger.log(`         時數: ${record.hours}`);
+      } else {
+        Logger.log(`      ❌ 不符合條件`);
+      }
+    }
+    
+    Logger.log('');
+    Logger.log(`✅ 找到 ${overtimeRecords.length} 筆已核准加班記錄`);
+    
+    if (overtimeRecords.length > 0) {
+      Logger.log('');
+      Logger.log('📋 加班記錄詳細列表:');
+      overtimeRecords.forEach((rec, idx) => {
+        Logger.log(`   ${idx + 1}. ${rec.date} - ${rec.employeeName}`);
+        Logger.log(`      ${rec.startTime} ~ ${rec.endTime} (${rec.hours}h)`);
+      });
+    }
+    
+    Logger.log('═══════════════════════════════════════');
+    
+    return overtimeRecords;
+    
+  } catch (error) {
+    Logger.log('❌ getApprovedOvertimeRecords 錯誤: ' + error);
+    Logger.log('   錯誤堆疊: ' + error.stack);
+    Logger.log('═══════════════════════════════════════');
+    return [];
+  }
+}
+
+function testGetAttendanceDetailsWithOvertime() {
+  Logger.log('🧪 測試 getAttendanceDetails');
+  Logger.log('═══════════════════════════════════════');
+  
+  const monthParam = '2025-12';
+  const userIdParam = 'U68e0ca9d516e63ed15bf9387fad174ac';
+  
+  Logger.log(`📅 查詢條件: ${monthParam}, userId: ${userIdParam}`);
+  Logger.log('');
+  
+  const result = getAttendanceDetails(monthParam, userIdParam);
+  
+  Logger.log('📤 API 回應:');
+  Logger.log(`   ok: ${result.ok}`);
+  Logger.log(`   records 數量: ${result.records ? result.records.length : 0}`);
+  Logger.log('');
+  
+  if (result.ok && result.records) {
+    // 找出 2025-12-09 的記錄
+    const dec09 = result.records.find(r => r.date === '2025-12-09');
+    
+    if (dec09) {
+      Logger.log('✅ 找到 2025-12-09 的記錄:');
+      Logger.log('');
+      Logger.log('📋 記錄內容:');
+      Logger.log(JSON.stringify(dec09, null, 2));
+      Logger.log('');
+      
+      Logger.log('🔍 加班資訊檢查:');
+      Logger.log(`   overtime 存在: ${dec09.overtime ? '是' : '否'}`);
+      
+      if (dec09.overtime) {
+        Logger.log('   ✅ 加班資訊:');
+        Logger.log(`      開始時間: ${dec09.overtime.startTime}`);
+        Logger.log(`      結束時間: ${dec09.overtime.endTime}`);
+        Logger.log(`      時數: ${dec09.overtime.hours}`);
+        Logger.log(`      原因: ${dec09.overtime.reason}`);
+      } else {
+        Logger.log('   ❌ 沒有加班資訊');
+      }
+    } else {
+      Logger.log('❌ 沒有找到 2025-12-09 的記錄');
+      Logger.log('');
+      Logger.log('📋 所有記錄的日期:');
+      result.records.forEach((r, i) => {
+        Logger.log(`   ${i + 1}. ${r.date} - ${r.name}`);
+      });
+    }
+  }
+  
+  Logger.log('');
+  Logger.log('═══════════════════════════════════════');
+}
+/**
+ * 🧪 測試加班記錄查詢
+ */
+function testGetApprovedOvertimeRecords() {
+  Logger.log('🧪 測試加班記錄查詢');
+  Logger.log('═══════════════════════════════════════');
+  
+  const monthParam = '2025-12';
+  const userIdParam = 'U68e0ca9d516e63ed15bf9387fad174ac';  // 替換成您的實際 userId
+  
+  Logger.log(`📅 查詢條件: ${monthParam}, userId: ${userIdParam}`);
+  Logger.log('');
+  
+  const records = getApprovedOvertimeRecords(monthParam, userIdParam);
+  
+  Logger.log('');
+  Logger.log('📤 查詢結果:');
+  Logger.log(`   找到 ${records.length} 筆記錄`);
+  
+  if (records.length > 0) {
+    records.forEach((rec, i) => {
+      Logger.log('');
+      Logger.log(`   記錄 ${i + 1}:`);
+      Logger.log(`      日期: ${rec.overtimeDate}`);
+      Logger.log(`      員工: ${rec.employeeName} (${rec.employeeId})`);
+      Logger.log(`      時間: ${rec.startTime} - ${rec.endTime}`);
+      Logger.log(`      時數: ${rec.hours} 小時`);
+      Logger.log(`      原因: ${rec.reason}`);
+    });
+  } else {
+    Logger.log('   ⚠️ 沒有找到符合條件的記錄');
+  }
+  
+  Logger.log('');
+  Logger.log('═══════════════════════════════════════');
+}
+
 
 // ==================== 地點管理 ====================
 /**
@@ -793,50 +1460,6 @@ function getReviewRequest() {
   return { ok: true, reviewRequest: reviewRequest };
 }
 
-/**
-//  * 更新審核狀態（加入 LINE 通知）
-//  */
-// function updateReviewStatus(rowNumber, status, note) {
-//   try {
-//     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
-//     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-//     const reviewStatusCol = headers.indexOf('管理員審核') + 1;
-
-//     if (reviewStatusCol === 0) {
-//       return { ok: false, msg: "試算表缺少必要欄位：'管理員審核'" };
-//     }
-
-//     const record = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
-//     const userId = record[headers.indexOf('員工ID')];
-//     const employeeName = record[headers.indexOf('打卡人員')];
-//     const punchDate = formatDate(record[headers.indexOf('打卡時間')]);
-//     const punchTime = formatTime(record[headers.indexOf('打卡時間')]);
-//     const punchType = record[headers.indexOf('打卡類別')];
-
-//     sheet.getRange(rowNumber, reviewStatusCol).setValue(status);
-    
-//     const isApproved = (status === "v");
-//     const reviewer = "系統管理員";
-    
-//     notifyPunchReview(
-//       userId,
-//       employeeName,
-//       punchDate,
-//       punchTime,
-//       punchType,
-//       reviewer,
-//       isApproved,
-//       note || ""
-//     );
-    
-//     Logger.log(`📤 已發送補打卡審核通知給 ${employeeName}`);
-
-//     return { ok: true, msg: "審核成功" };
-//   } catch (err) {
-//     Logger.log("updateReviewStatus 錯誤: " + err.message);
-//     return { ok: false, msg: `審核失敗：${err.message}` };
-//   }
-// }
 /**
  * 更新審核狀態（含 LINE 通知）
  */
@@ -1091,4 +1714,113 @@ function debugCheckSession() {
   }
   
   Logger.log('═══════════════════════════════════════');
+}
+
+
+/**
+ * 取得員工指定月份的詳細打卡資料（用於圖表分析）
+ * @param {string} employeeId - 員工ID
+ * @param {string} yearMonth - 年月，格式 "YYYY-MM"
+ * @returns {Object} 包含每日打卡時間和工時的資料
+ */
+function getEmployeeMonthlyPunchData(employeeId, yearMonth) {
+  try {
+    Logger.log('📊 取得員工打卡分析資料');
+    Logger.log('   員工ID: ' + employeeId);
+    Logger.log('   月份: ' + yearMonth);
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
+    const values = sheet.getDataRange().getValues();
+    
+    if (values.length <= 1) {
+      return { 
+        success: false, 
+        message: '無打卡記錄' 
+      };
+    }
+    
+    // 過濾該員工該月份的記錄
+    const records = values.slice(1).filter(row => {
+      if (!row[0]) return false;
+      
+      const date = new Date(row[0]);
+      const recordMonth = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+      const recordEmployeeId = row[1];
+      
+      return recordMonth === yearMonth && recordEmployeeId === employeeId;
+    });
+    
+    if (records.length === 0) {
+      return {
+        success: false,
+        message: '該月份無打卡記錄'
+      };
+    }
+    
+    // 按日期分組
+    const dailyData = {};
+    
+    records.forEach(row => {
+      const timestamp = new Date(row[0]);
+      const dateKey = Utilities.formatDate(timestamp, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+      const type = row[4]; // 上班/下班
+      const time = Utilities.formatDate(timestamp, Session.getScriptTimeZone(), 'HH:mm');
+      const note = row[7] || '';
+      const audit = row[8] || '';
+      
+      if (!dailyData[dateKey]) {
+        dailyData[dateKey] = {
+          date: dateKey,
+          punchIn: null,
+          punchOut: null,
+          workHours: 0,
+          status: 'normal'
+        };
+      }
+      
+      // 只記錄正常打卡或已核准的補打卡
+      if (note !== '補打卡' || audit === 'v') {
+        if (type === '上班') {
+          dailyData[dateKey].punchIn = time;
+        } else if (type === '下班') {
+          dailyData[dateKey].punchOut = time;
+        }
+      }
+    });
+    
+    // 計算工時
+    const result = Object.values(dailyData).map(day => {
+      if (day.punchIn && day.punchOut) {
+        try {
+          const inTime = new Date(`${day.date} ${day.punchIn}`);
+          const outTime = new Date(`${day.date} ${day.punchOut}`);
+          const diffMs = outTime - inTime;
+          day.workHours = parseFloat((diffMs / (1000 * 60 * 60)).toFixed(2));
+        } catch (e) {
+          day.workHours = 0;
+        }
+      } else {
+        day.status = 'incomplete';
+      }
+      return day;
+    });
+    
+    // 排序（由舊到新）
+    result.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    return {
+      success: true,
+      data: result,
+      employeeId: employeeId,
+      yearMonth: yearMonth,
+      totalDays: result.length
+    };
+    
+  } catch (error) {
+    Logger.log('❌ getEmployeeMonthlyPunchData 錯誤: ' + error);
+    return {
+      success: false,
+      message: error.message
+    };
+  }
 }

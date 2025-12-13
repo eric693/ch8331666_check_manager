@@ -130,6 +130,10 @@ function doGet(e) {
         return respond1(handleGetAllDailyEmployees(e.parameter));
       case "getDailySalaryRecords":
         return respond1(handleGetDailySalaryRecords(e.parameter));
+
+      // 在 doGet(e) 的 switch 區塊中新增：
+      case "getEmployeeMonthlyPunchData":
+        return respond1(handleGetEmployeeMonthlyPunchData(e.parameter));
       // ==================== 測試端點 ====================
       case "initApp":
         return respond1(handleInitApp(e.parameter));
