@@ -620,5 +620,12 @@
   "SALARY_SELECT_YEAR_MONTH": "請選擇查詢年月",
   "SALARY_HOURLY_MIN_190": "時薪不得低於190元",
   "SALARY_INPUT_WORK_HOURS": "請輸入工作時數",
-  "SALARY_HOURLY_CALC_SUCCESS": "時薪計算完成"
+  "SALARY_HOURLY_CALC_SUCCESS": "時薪計算完成",
+
+  "SALARY_SETTING_DESC": "設定基本薪資與所有津貼、扣款項目",
+  "PLEASE_SELECT": "請選擇",
+  "FULL_TIME": "正職",
+  "PART_TIME": "兼職",
+  "CONTRACT": "約聘",
+  "HINT_AUTO_FILL": "選擇員工後會自動填入ID和姓名"
 }
