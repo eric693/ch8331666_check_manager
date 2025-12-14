@@ -722,6 +722,8 @@
     "FILTER_YEAR_MONTH_LABEL": "ปีและเดือน",
     "BTN_LOAD_SALARY_LIST": "📋 โหลดรายการเงินเดือน",
 
-    "SALARY_SELECT_QUERY_MONTH": "กรุณาเลือกเดือนที่ต้องการค้นหา"
+    "SALARY_SELECT_QUERY_MONTH": "กรุณาเลือกเดือนที่ต้องการค้นหา",
+
+    "FOOTER_CREDITS": "จัดทำโดย 0J"
 }
   

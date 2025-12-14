@@ -719,5 +719,7 @@
   "FILTER_YEAR_MONTH_LABEL": "Năm & tháng",
   "BTN_LOAD_SALARY_LIST": "📋 Tải danh sách lương",
 
-  "SALARY_SELECT_QUERY_MONTH": "Vui lòng chọn tháng cần tra cứu"
+  "SALARY_SELECT_QUERY_MONTH": "Vui lòng chọn tháng cần tra cứu",
+
+  "FOOTER_CREDITS": "Được phát triển bởi 0J"
 }

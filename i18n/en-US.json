@@ -692,5 +692,7 @@
   "FILTER_YEAR_MONTH_LABEL": "Query Month",
   "BTN_LOAD_SALARY_LIST": "📋 Load Salary List",
   
-  "SALARY_SELECT_QUERY_MONTH": "Please select query month"
+  "SALARY_SELECT_QUERY_MONTH": "Please select query month",
+
+  "FOOTER_CREDITS": "Made by 0J"
 }

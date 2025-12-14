@@ -673,5 +673,7 @@
   "FILTER_YEAR_MONTH_LABEL": "Tahun & Bulan",
   "BTN_LOAD_SALARY_LIST": "📋 Muat Daftar Gaji",
 
-  "SALARY_SELECT_QUERY_MONTH": "Silakan pilih bulan pencarian"
+  "SALARY_SELECT_QUERY_MONTH": "Silakan pilih bulan pencarian",
+
+  "FOOTER_CREDITS": "Dibuat oleh 0J"
 }

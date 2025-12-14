@@ -673,5 +673,7 @@
   "FILTER_YEAR_MONTH_LABEL": "대상 연월",
   "BTN_LOAD_SALARY_LIST": "📋 급여 목록 불러오기",
 
-  "SALARY_SELECT_QUERY_MONTH": "조회할 월을 선택하세요"
+  "SALARY_SELECT_QUERY_MONTH": "조회할 월을 선택하세요",
+
+  "FOOTER_CREDITS": "0J 제작"
 }
