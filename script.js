@@ -2361,6 +2361,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
                 
                 const res = await callApifetch(`adjustPunch&${params.toString()}`);
+                console.log('📤 前端提交補打卡:', {
+                    type: type,
+                    datetime: datetime,
+                    reason: reason,
+                    response: res
+                });
                 
                 if (res.ok) {
                     showNotification("補打卡申請成功！等待管理員審核", "success");
