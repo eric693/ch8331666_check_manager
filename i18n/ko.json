@@ -675,5 +675,10 @@
 
   "SALARY_SELECT_QUERY_MONTH": "조회할 월을 선택하세요",
 
-  "FOOTER_CREDITS": "0J 제작"
+  "FOOTER_CREDITS": "0J 제작",
+
+  "ADJUST_REASON_LABEL": "출퇴근 조정 사유",
+  "ADJUST_REASON_PLACEHOLDER": "조정 사유를 입력해 주세요 (예: 체크인 누락, 시스템 오류 등)",
+  "ADJUST_REASON_REQUIRED": "조정 사유를 입력해 주세요"
+
 }

@@ -675,5 +675,10 @@
 
   "SALARY_SELECT_QUERY_MONTH": "対象月を選択してください",
 
-  "FOOTER_CREDITS": "0J 制作"
+  "FOOTER_CREDITS": "0J 制作",
+
+  "ADJUST_REASON_LABEL": "修正理由",
+  "ADJUST_REASON_PLACEHOLDER": "修正理由を記入してください（例：打刻忘れ、システム障害など）",
+  "ADJUST_REASON_REQUIRED": "修正理由を入力してください"
+
 }

@@ -675,5 +675,10 @@
 
   "SALARY_SELECT_QUERY_MONTH": "Silakan pilih bulan pencarian",
 
-  "FOOTER_CREDITS": "Dibuat oleh 0J"
+  "FOOTER_CREDITS": "Dibuat oleh 0J",
+
+  "ADJUST_REASON_LABEL": "Alasan Penyesuaian",
+  "ADJUST_REASON_PLACEHOLDER": "Harap jelaskan alasan penyesuaian (misalnya: lupa absen, kesalahan sistem, dll.)",
+  "ADJUST_REASON_REQUIRED": "Harap isi alasan penyesuaian"
+
 }

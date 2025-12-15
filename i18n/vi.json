@@ -721,5 +721,10 @@
 
   "SALARY_SELECT_QUERY_MONTH": "Vui lòng chọn tháng cần tra cứu",
 
-  "FOOTER_CREDITS": "Được phát triển bởi 0J"
+  "FOOTER_CREDITS": "Được phát triển bởi 0J",
+
+  "ADJUST_REASON_LABEL": "Lý do điều chỉnh",
+  "ADJUST_REASON_PLACEHOLDER": "Vui lòng nêu lý do điều chỉnh (ví dụ: quên chấm công, lỗi hệ thống, v.v.)",
+  "ADJUST_REASON_REQUIRED": "Vui lòng nhập lý do điều chỉnh"
+
 }

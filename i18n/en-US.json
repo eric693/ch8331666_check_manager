@@ -694,5 +694,10 @@
   
   "SALARY_SELECT_QUERY_MONTH": "Please select query month",
 
-  "FOOTER_CREDITS": "Made by 0J"
+  "FOOTER_CREDITS": "Made by 0J",
+
+  "ADJUST_REASON_LABEL": "Reason for Adjustment",
+  "ADJUST_REASON_PLACEHOLDER": "Please describe the reason for the adjustment (e.g., forgot to check in, system error, etc.)",
+  "ADJUST_REASON_REQUIRED": "Please provide a reason for the adjustment"
+
 }

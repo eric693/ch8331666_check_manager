@@ -724,6 +724,11 @@
 
     "SALARY_SELECT_QUERY_MONTH": "กรุณาเลือกเดือนที่ต้องการค้นหา",
 
-    "FOOTER_CREDITS": "จัดทำโดย 0J"
+    "FOOTER_CREDITS": "จัดทำโดย 0J",
+
+    "ADJUST_REASON_LABEL": "เหตุผลในการปรับแก้เวลา",
+    "ADJUST_REASON_PLACEHOLDER": "โปรดระบุเหตุผลในการปรับแก้ (เช่น ลืมบันทึกเวลา, ระบบขัดข้อง เป็นต้น)",
+    "ADJUST_REASON_REQUIRED": "กรุณากรอกเหตุผลในการปรับแก้"
+
 }
   

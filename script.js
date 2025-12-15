@@ -1604,32 +1604,60 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         requests.forEach((req, index) => {
             const li = document.createElement('li');
-            li.className = 'p-4 bg-gray-50 rounded-lg shadow-sm flex flex-col space-y-2 dark:bg-gray-700';
+            li.className = 'p-4 bg-gray-50 rounded-lg shadow-sm flex flex-col space-y-3 dark:bg-gray-700';
+            
+            // 👇 優化顯示布局
             li.innerHTML = `
-             <div class="flex flex-col space-y-1">
-
-                        <div class="flex items-center justify-between w-full">
-                            <p class="text-sm font-semibold text-gray-800 dark:text-white">${req.name} - ${req.remark}</p>
-                            <span class="text-xs text-gray-500 dark:text-gray-400">${req.applicationPeriod}</span>
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="font-bold text-gray-800 dark:text-white">${req.name}</span>
+                            <span class="text-xs px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
+                                ${req.remark}
+                            </span>
                         </div>
-                    </div>
-                    
-                <div class="flex items-center justify-between w-full mt-2">
-                    <p 
-                        data-i18n-key="${req.type}" 
-                        class="text-sm text-indigo-600 dark:text-indigo-400 font-medium">
-                    </p> 
-                    
-                    <div class="flex space-x-2"> 
-                        <button data-i18n="ADMIN_APPROVE_BUTTON" data-index="${index}" class="approve-btn px-3 py-1 rounded-md text-sm font-bold btn-primary">核准</button>
-                        <button data-i18n="ADMIN_REJECT_BUTTON" data-index="${index}" class="reject-btn px-3 py-1 rounded-md text-sm font-bold btn-warning">拒絕</button>
+                        
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            <span data-i18n-key="${req.type}"></span>
+                        </p>
+                        
+                        <p class="text-xs text-gray-500 dark:text-gray-500">
+                            ${req.applicationPeriod}
+                        </p>
+                        
+                        <!-- 👇 新增：顯示補打卡理由 -->
+                        ${req.note ? `
+                            <div class="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600 rounded">
+                                <p class="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
+                                    📝 補打卡理由：
+                                </p>
+                                <p class="text-sm text-yellow-700 dark:text-yellow-400">
+                                    ${req.note}
+                                </p>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
+                
+                <div class="flex justify-end space-x-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                    <button data-i18n="ADMIN_APPROVE_BUTTON" 
+                            data-index="${index}" 
+                            class="approve-btn px-4 py-2 rounded-md text-sm font-bold btn-primary">
+                        核准
+                    </button>
+                    <button data-i18n="ADMIN_REJECT_BUTTON" 
+                            data-index="${index}" 
+                            class="reject-btn px-4 py-2 rounded-md text-sm font-bold btn-warning">
+                        拒絕
+                    </button>
+                </div>
             `;
+            
             listEl.appendChild(li);
             renderTranslations(li);
         });
         
+        // 保持原有的按鈕事件綁定
         listEl.querySelectorAll('.approve-btn').forEach(button => {
             button.addEventListener('click', (e) => handleReviewAction(e.currentTarget, e.currentTarget.dataset.index, 'approve'));
         });
@@ -2194,7 +2222,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             console.log(`點擊補打卡: ${date} - ${type}`);
             
-            // 翻譯打卡類型
             const typeText = t(type === '上班' ? 'PUNCH_IN' : 'PUNCH_OUT');
             
             const formHtml = `
@@ -2202,6 +2229,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <p class="font-semibold mb-2 dark:text-white">
                         ${t('MAKEUP_PUNCH_TITLE', { date: date, type: typeText })}
                     </p>
+                    
+                    <!-- 選擇時間 -->
                     <div class="form-group mb-3">
                         <label for="adjustDateTime" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
                             ${t('SELECT_PUNCH_TIME', { type: typeText })}
@@ -2210,6 +2239,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                             type="datetime-local" 
                             class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
+                    
+                    <!-- 👇 新增：補打卡理由 -->
+                    <div class="form-group mb-3">
+                        <label for="adjustReason" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+                            <span data-i18n="ADJUST_REASON_LABEL">補打卡理由</span>
+                            <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="adjustReason" 
+                                  rows="3" 
+                                  required
+                                  placeholder="${t('ADJUST_REASON_PLACEHOLDER') || '請說明補打卡原因...'}"
+                                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    </div>
+                    
                     <div class="grid grid-cols-2 gap-2">
                         <button id="cancel-adjust-btn" 
                                 data-i18n="BTN_CANCEL"
@@ -2265,11 +2308,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             const loadingText = t('LOADING') || '處理中...';
             
             const datetime = document.getElementById("adjustDateTime").value;
+            const reason = document.getElementById("adjustReason")?.value.trim(); // 👈 新增
             const type = button.dataset.type;
             const date = button.dataset.date;
             
             if (!datetime) {
                 showNotification("請選擇補打卡日期時間", "error");
+                return;
+            }
+            
+            // 👇 新增：驗證理由
+            if (!reason || reason.length < 5) {
+                showNotification(t('ADJUST_REASON_REQUIRED') || "請填寫補打卡理由（至少 5 個字）", "error");
                 return;
             }
             
@@ -2287,14 +2337,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 
-                // ✅ 修正：note 改為裝置資訊
+                // 👇 修改：將理由加入 note 參數
                 const params = new URLSearchParams({
                     token: sessionToken,
                     type: type,
                     lat: lat,
                     lng: lng,
                     datetime: datetime,
-                    note: navigator.userAgent  // ⭐ 改成裝置資訊
+                    note: reason  // ⭐ 改為使用者填寫的理由
                 });
                 
                 const res = await callApifetch(`adjustPunch&${params.toString()}`);

@@ -711,5 +711,9 @@
   "BTN_LOAD_SALARY_LIST": "📋 載入薪資列表",
   
   "SALARY_SELECT_QUERY_MONTH": "請選擇查詢月份",
-  "FOOTER_CREDITS": "由 0J 製作"
+  "FOOTER_CREDITS": "由 0J 製作",
+
+  "ADJUST_REASON_LABEL": "補打卡理由",
+  "ADJUST_REASON_PLACEHOLDER": "請說明補打卡原因（例如：忘記打卡、系統故障等）",
+  "ADJUST_REASON_REQUIRED": "請填寫補打卡理由"
 }
