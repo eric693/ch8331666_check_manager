@@ -49,23 +49,16 @@ function calculateAnnualLeave_(hireDate, calculateDate = new Date()) {
 }
 
 /**
- * 初始化或更新員工假期額度
+ * 初始化或更新員工假期額度（15種假別）
  * @param {string} userId - 員工 ID
  * @param {Date} hireDate - 到職日期
  */
 function initializeLeaveBalance_(userId, hireDate) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LEAVE_BALANCE);
   
-  // 如果工作表不存在，創建它
   if (!sheet) {
-    const newSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_LEAVE_BALANCE);
-    newSheet.appendRow([
-      '員工ID', '姓名', '到職日期', '年度',
-      '特休假', '病假', '事假', '婚假', '喪假',
-      '產假', '陪產假', '家庭照顧假', '生理假',
-      '更新時間'
-    ]);
-    return initializeLeaveBalance_(userId, hireDate);
+    Logger.log('❌ 找不到「員工假期額度」工作表，請先執行 setupLeaveSystemDatabase()');
+    return;
   }
   
   const values = sheet.getDataRange().getValues();
@@ -77,7 +70,7 @@ function initializeLeaveBalance_(userId, hireDate) {
       // 記錄已存在，更新特休假
       const annualLeave = calculateAnnualLeave_(hireDate);
       sheet.getRange(i + 1, 5).setValue(annualLeave);
-      sheet.getRange(i + 1, 14).setValue(new Date());
+      sheet.getRange(i + 1, 20).setValue(new Date());  // 更新時間在第20欄
       Logger.log(`✅ 更新員工 ${userId} 的特休假：${annualLeave} 天`);
       return;
     }
@@ -88,29 +81,33 @@ function initializeLeaveBalance_(userId, hireDate) {
   const annualLeave = calculateAnnualLeave_(hireDate);
   
   sheet.appendRow([
-    userId,                    // 員工ID
-    employee.name || '',       // 姓名
-    hireDate,                  // 到職日期
-    currentYear,               // 年度
-    annualLeave,               // 特休假
-    30,                        // 病假（每年30天）
-    14,                        // 事假（每年14天）
-    8,                         // 婚假（8天）
-    0,                         // 喪假（依親屬關係）
-    56,                        // 產假（8週=56天）
-    7,                         // 陪產假（7天）
-    7,                         // 家庭照顧假（7天）
-    12,                        // 生理假（每月1天，一年12天）
-    new Date()                 // 更新時間
+    userId,                    // 1. 員工ID
+    employee.name || '',       // 2. 姓名
+    hireDate,                  // 3. 到職日期
+    currentYear,               // 4. 年度
+    annualLeave,               // 5. 特休假（依年資計算）
+    0,                         // 6. 加班補休假（初始為0）
+    14,                        // 7. 事假（每年14天）
+    30,                        // 8. 未住院病假（每年30天）
+    30,                        // 9. 住院病假（每年30天，與未住院合計30天）
+    0,                         // 10. 喪假（依親屬關係）
+    8,                         // 11. 婚假（8天）
+    7,                         // 12. 陪產檢及陪產假（7天）
+    56,                        // 13. 產假（8週=56天）
+    0,                         // 14. 公假（含兵役假）（無上限，初始0）
+    0,                         // 15. 公傷假（無上限，初始0）
+    0,                         // 16. 曠工（負面記錄，初始0）
+    0,                         // 17. 天然災害停班（無上限，初始0）
+    7,                         // 18. 家庭照顧假（7天）
+    12,                        // 19. 生理假（每月1天，一年12天）
+    new Date()                 // 20. 更新時間
   ]);
   
-  Logger.log(`✅ 新增員工 ${userId} 的假期額度，特休假：${annualLeave} 天`);
+  Logger.log(`✅ 新增員工 ${userId} 的假期額度（15種假別），特休假：${annualLeave} 天`);
 }
 
 /**
- * 取得員工假期餘額
- * @param {string} sessionToken - Session Token
- * @return {Object} 假期餘額資訊
+ * 取得員工假期餘額（15種假別）
  */
 function getLeaveBalance(sessionToken) {
   const session = checkSession_(sessionToken);
@@ -135,21 +132,26 @@ function getLeaveBalance(sessionToken) {
       return {
         ok: true,
         balance: {
-          ANNUAL_LEAVE: values[i][4],        // 特休假
-          SICK_LEAVE: values[i][5],          // 病假
-          PERSONAL_LEAVE: values[i][6],      // 事假
-          MARRIAGE_LEAVE: values[i][7],      // 婚假
-          BEREAVEMENT_LEAVE: values[i][8],   // 喪假
-          MATERNITY_LEAVE: values[i][9],     // 產假
-          PATERNITY_LEAVE: values[i][10],    // 陪產假
-          FAMILY_CARE_LEAVE: values[i][11],  // 家庭照顧假
-          MENSTRUAL_LEAVE: values[i][12]     // 生理假
+          ANNUAL_LEAVE: values[i][4],              // 特休假
+          COMP_TIME_OFF: values[i][5],             // 加班補休假
+          PERSONAL_LEAVE: values[i][6],            // 事假
+          SICK_LEAVE: values[i][7],                // 未住院病假
+          HOSPITALIZATION_LEAVE: values[i][8],     // 住院病假
+          BEREAVEMENT_LEAVE: values[i][9],         // 喪假
+          MARRIAGE_LEAVE: values[i][10],           // 婚假
+          PATERNITY_LEAVE: values[i][11],          // 陪產檢及陪產假
+          MATERNITY_LEAVE: values[i][12],          // 產假
+          OFFICIAL_LEAVE: values[i][13],           // 公假（含兵役假）
+          WORK_INJURY_LEAVE: values[i][14],        // 公傷假
+          ABSENCE_WITHOUT_LEAVE: values[i][15],    // 曠工
+          NATURAL_DISASTER_LEAVE: values[i][16],   // 天然災害停班
+          FAMILY_CARE_LEAVE: values[i][17],        // 家庭照顧假
+          MENSTRUAL_LEAVE: values[i][18]           // 生理假
         }
       };
     }
   }
   
-  // 如果找不到記錄，可能需要初始化
   return { 
     ok: false, 
     code: 'ERR_NO_LEAVE_BALANCE',
@@ -697,17 +699,12 @@ function getPendingLeaveRequests(sessionToken) {
 }
 
 /**
- * 審核請假申請（含 LINE 通知）
- * @param {string} sessionToken - Session Token
- * @param {number} rowNumber - 記錄行號
- * @param {string} reviewAction - 審核動作（approve/reject）
- * @param {string} comment - 審核意見
+ * 審核請假申請（含 LINE 通知）- 支援15種假別的扣除
  */
 function reviewLeaveRequest(sessionToken, rowNumber, reviewAction, comment) {
   const session = checkSession_(sessionToken);
   if (!session.ok) return { ok: false, code: session.code };
   
-  // 檢查是否為管理員
   if (session.user.dept !== '管理員') {
     return { ok: false, code: 'ERR_NO_PERMISSION' };
   }
@@ -719,31 +716,27 @@ function reviewLeaveRequest(sessionToken, rowNumber, reviewAction, comment) {
     return { ok: false, code: 'ERR_LEAVE_RECORDS_NOT_FOUND' };
   }
   
-  // 👉 取得請假記錄（包含所有欄位用於通知）
   const record = sheet.getRange(rowNumber, 1, 1, 13).getValues()[0];
-  const userId = record[1];              // 員工ID
-  const employeeName = record[2];        // 員工姓名
-  const leaveType = record[4];           // 假別
-  const startDate = record[5];           // 開始日期
-  const endDate = record[6];             // 結束日期
-  const days = record[7];                // 天數
+  const userId = record[1];
+  const employeeName = record[2];
+  const leaveType = record[4];
+  const startDate = record[5];
+  const endDate = record[6];
+  const days = record[7];
   const currentYear = new Date().getFullYear();
   
-  // 👉 格式化日期用於通知
   const formattedStartDate = formatDate(startDate);
   const formattedEndDate = formatDate(endDate);
-  
-  // 👉 翻譯假別名稱
   const leaveTypeName = getLeaveTypeName(leaveType);
   
   // 更新審核狀態
   const status = reviewAction === 'approve' ? 'APPROVED' : 'REJECTED';
-  sheet.getRange(rowNumber, 10).setValue(status);           // 狀態
-  sheet.getRange(rowNumber, 11).setValue(session.user.name); // 審核人
-  sheet.getRange(rowNumber, 12).setValue(new Date());       // 審核時間
-  sheet.getRange(rowNumber, 13).setValue(comment || "");    // 審核意見
+  sheet.getRange(rowNumber, 10).setValue(status);
+  sheet.getRange(rowNumber, 11).setValue(session.user.name);
+  sheet.getRange(rowNumber, 12).setValue(new Date());
+  sheet.getRange(rowNumber, 13).setValue(comment || "");
   
-  // 👉 發送 LINE 通知
+  // 發送 LINE 通知
   try {
     const isApproved = (reviewAction === 'approve');
     notifyLeaveReview(
@@ -760,24 +753,29 @@ function reviewLeaveRequest(sessionToken, rowNumber, reviewAction, comment) {
     Logger.log(`📤 已發送請假審核通知給 ${employeeName} (${userId})`);
   } catch (err) {
     Logger.log(`⚠️ LINE 通知發送失敗: ${err.message}`);
-    // 通知失敗不影響審核流程
   }
   
-  // 如果核准，扣除假期餘額
+  // 如果核准，扣除假期餘額（15種假別對應）
   if (reviewAction === 'approve' && balanceSheet) {
     const balanceValues = balanceSheet.getDataRange().getValues();
     
-    // 假別對應的欄位索引
+    // 假別對應的欄位索引（更新為15種）
     const leaveTypeColumns = {
       'ANNUAL_LEAVE': 5,
-      'SICK_LEAVE': 6,
+      'COMP_TIME_OFF': 6,
       'PERSONAL_LEAVE': 7,
-      'MARRIAGE_LEAVE': 8,
-      'BEREAVEMENT_LEAVE': 9,
-      'MATERNITY_LEAVE': 10,
-      'PATERNITY_LEAVE': 11,
-      'FAMILY_CARE_LEAVE': 12,
-      'MENSTRUAL_LEAVE': 13
+      'SICK_LEAVE': 8,
+      'HOSPITALIZATION_LEAVE': 9,
+      'BEREAVEMENT_LEAVE': 10,
+      'MARRIAGE_LEAVE': 11,
+      'PATERNITY_LEAVE': 12,
+      'MATERNITY_LEAVE': 13,
+      'OFFICIAL_LEAVE': 14,
+      'WORK_INJURY_LEAVE': 15,
+      'ABSENCE_WITHOUT_LEAVE': 16,
+      'NATURAL_DISASTER_LEAVE': 17,
+      'FAMILY_CARE_LEAVE': 18,
+      'MENSTRUAL_LEAVE': 19
     };
     
     const columnIndex = leaveTypeColumns[leaveType];
@@ -786,10 +784,15 @@ function reviewLeaveRequest(sessionToken, rowNumber, reviewAction, comment) {
       for (let i = 1; i < balanceValues.length; i++) {
         if (balanceValues[i][0] === userId && balanceValues[i][3] === currentYear) {
           const currentBalance = balanceValues[i][columnIndex - 1];
-          const newBalance = currentBalance - days;
+          
+          // 曠工是累加，其他是扣除
+          const newBalance = leaveType === 'ABSENCE_WITHOUT_LEAVE' 
+            ? currentBalance + days 
+            : currentBalance - days;
+            
           balanceSheet.getRange(i + 1, columnIndex).setValue(newBalance);
-          balanceSheet.getRange(i + 1, 14).setValue(new Date()); // 更新時間
-          Logger.log(`✅ 扣除 ${userId} 的 ${leaveType}：${days} 天，剩餘 ${newBalance} 天`);
+          balanceSheet.getRange(i + 1, 20).setValue(new Date());
+          Logger.log(`✅ ${leaveType === 'ABSENCE_WITHOUT_LEAVE' ? '累計' : '扣除'} ${userId} 的 ${leaveType}：${days} 天，剩餘 ${newBalance} 天`);
           break;
         }
       }
@@ -804,17 +807,23 @@ function reviewLeaveRequest(sessionToken, rowNumber, reviewAction, comment) {
 
 
 /**
- * 翻譯假別代碼為中文名稱
+ * 翻譯假別代碼為中文名稱（15種假別）
  */
 function getLeaveTypeName(leaveType) {
   const leaveTypeMap = {
     'ANNUAL_LEAVE': '特休假',
-    'SICK_LEAVE': '病假',
+    'COMP_TIME_OFF': '加班補休假',
     'PERSONAL_LEAVE': '事假',
-    'MARRIAGE_LEAVE': '婚假',
+    'SICK_LEAVE': '未住院病假',
+    'HOSPITALIZATION_LEAVE': '住院病假',
     'BEREAVEMENT_LEAVE': '喪假',
+    'MARRIAGE_LEAVE': '婚假',
+    'PATERNITY_LEAVE': '陪產檢及陪產假',
     'MATERNITY_LEAVE': '產假',
-    'PATERNITY_LEAVE': '陪產假',
+    'OFFICIAL_LEAVE': '公假（含兵役假）',
+    'WORK_INJURY_LEAVE': '公傷假',
+    'ABSENCE_WITHOUT_LEAVE': '曠工',
+    'NATURAL_DISASTER_LEAVE': '天然災害停班',
     'FAMILY_CARE_LEAVE': '家庭照顧假',
     'MENSTRUAL_LEAVE': '生理假'
   };

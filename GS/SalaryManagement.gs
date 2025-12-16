@@ -331,7 +331,7 @@ function calculateMonthlySalary(employeeId, yearMonth) {
     
     const config = salaryConfig.data;
     const overtimeRecords = getEmployeeOvertimeRecords(employeeId, yearMonth);
-    const leaveRecords = getEmployeeLeaveRecords(employeeId, yearMonth);
+    const leaveRecords = getEmployeeMonthlySalary(employeeId, yearMonth);
     
     // 基本薪資
     let baseSalary = parseFloat(config['基本薪資']) || 0;
@@ -753,7 +753,7 @@ function getEmployeeOvertimeRecords(employeeId, yearMonth) {
 /**
  * ✅ 取得員工請假記錄
  */
-function getEmployeeLeaveRecords(employeeId, yearMonth) {
+function getEmployeeMonthlySalary(employeeId, yearMonth) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("請假記錄");
     

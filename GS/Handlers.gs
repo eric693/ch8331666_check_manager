@@ -43,10 +43,164 @@ function handlePunch(params) {
   return punch(token, type, parseFloat(lat), parseFloat(lng), note);
 }
 
+// function handleAdjustPunch(params) {
+//   const { token, type, lat, lng, note, datetime } = params;
+//   const punchDate = datetime ? new Date(datetime) : new Date();
+//   return punchAdjusted(token, type, punchDate, parseFloat(lat), parseFloat(lng), note);
+// }
+
+/**
+ * ✅ 處理補打卡（完全修正版 - 強化參數驗證和日誌）
+ */
 function handleAdjustPunch(params) {
-  const { token, type, lat, lng, note, datetime } = params;
-  const punchDate = datetime ? new Date(datetime) : new Date();
-  return punchAdjusted(token, type, punchDate, parseFloat(lat), parseFloat(lng), note);
+  try {
+    Logger.log('═══════════════════════════════════════');
+    Logger.log('📋 handleAdjustPunch 開始');
+    Logger.log('═══════════════════════════════════════');
+    
+    // ⭐ 步驟 1：記錄收到的原始參數
+    Logger.log('📥 收到的原始 params 物件:');
+    Logger.log('   - token: ' + (params.token ? params.token.substring(0, 20) + '...' : '缺少'));
+    Logger.log('   - type: ' + (params.type || '缺少'));
+    Logger.log('   - datetime: ' + (params.datetime || '缺少'));
+    Logger.log('   - lat: ' + (params.lat || '缺少'));
+    Logger.log('   - lng: ' + (params.lng || '缺少'));
+    Logger.log('   - note: ' + (params.note || '缺少'));
+    Logger.log('');
+    
+    // ⭐ 步驟 2：解構參數（使用解構賦值）
+    const { token, type, lat, lng, note, datetime } = params;
+    
+    // ⭐ 步驟 3：驗證必要參數
+    if (!token) {
+      Logger.log('❌ 缺少 token');
+      return { ok: false, code: "ERR_MISSING_TOKEN", msg: "缺少認證 token" };
+    }
+    
+    if (!type) {
+      Logger.log('❌ 缺少 type');
+      return { ok: false, code: "ERR_MISSING_TYPE", msg: "缺少打卡類型" };
+    }
+    
+    if (!datetime) {
+      Logger.log('❌ 缺少 datetime');
+      return { ok: false, code: "ERR_MISSING_DATETIME", msg: "缺少日期時間" };
+    }
+    
+    if (!lat || !lng) {
+      Logger.log('❌ 缺少座標');
+      return { ok: false, code: "ERR_MISSING_LOCATION", msg: "缺少位置資訊" };
+    }
+    
+    // ⭐⭐⭐ 關鍵驗證：理由長度
+    if (!note || note.trim().length < 2) {
+      Logger.log('❌ 理由不足 2 個字');
+      Logger.log('   note 內容: "' + note + '"');
+      Logger.log('   note 長度: ' + (note ? note.length : 0));
+      return { ok: false, code: "ERR_REASON_TOO_SHORT", msg: "補打卡理由至少需要 2 個字" };
+    }
+    
+    Logger.log('✅ 所有參數驗證通過');
+    Logger.log('');
+    
+    // ⭐ 步驟 4：轉換日期
+    const punchDate = datetime ? new Date(datetime) : new Date();
+    
+    if (isNaN(punchDate.getTime())) {
+      Logger.log('❌ 日期格式錯誤');
+      return { ok: false, code: "ERR_INVALID_DATE", msg: "日期格式錯誤" };
+    }
+    
+    Logger.log('📅 轉換後的日期: ' + punchDate.toISOString());
+    Logger.log('');
+    
+    // ⭐ 步驟 5：記錄即將傳遞給核心函數的參數
+    Logger.log('📡 準備呼叫 punchAdjusted()');
+    Logger.log('   參數 1 (token): ' + token.substring(0, 20) + '...');
+    Logger.log('   參數 2 (type): ' + type);
+    Logger.log('   參數 3 (punchDate): ' + punchDate.toISOString());
+    Logger.log('   參數 4 (lat): ' + parseFloat(lat));
+    Logger.log('   參數 5 (lng): ' + parseFloat(lng));
+    Logger.log('   參數 6 (note): ' + note);  // ⭐⭐⭐ 確認有傳遞
+    Logger.log('');
+    
+    // ⭐⭐⭐ 關鍵：呼叫核心函數並傳遞所有 6 個參數
+    const result = punchAdjusted(
+      token, 
+      type, 
+      punchDate, 
+      parseFloat(lat), 
+      parseFloat(lng), 
+      note  // ⭐ 確保理由有傳遞
+    );
+    
+    Logger.log('📤 punchAdjusted() 回傳結果:');
+    Logger.log('   - ok: ' + result.ok);
+    Logger.log('   - code: ' + (result.code || '無'));
+    Logger.log('   - msg: ' + (result.msg || '無'));
+    Logger.log('');
+    Logger.log('═══════════════════════════════════════');
+    
+    return result;
+    
+  } catch (error) {
+    Logger.log('');
+    Logger.log('❌❌❌ handleAdjustPunch 發生錯誤');
+    Logger.log('錯誤訊息: ' + error.message);
+    Logger.log('錯誤堆疊: ' + error.stack);
+    Logger.log('═══════════════════════════════════════');
+    
+    return { 
+      ok: false, 
+      code: "ERR_INTERNAL_ERROR", 
+      msg: "補打卡處理失敗: " + error.message 
+    };
+  }
+}
+
+/**
+ * 🧪 測試 handleAdjustPunch（完整流程）
+ */
+function testHandleAdjustPunchComplete() {
+  Logger.log('🧪 測試 handleAdjustPunch 完整流程');
+  Logger.log('═══════════════════════════════════════');
+  Logger.log('');
+  
+  const testParams = {
+    token: 'a8f8ca99-97d6-4643-ad8e-67a73f2bb649',  // ⚠️ 替換成你的有效 token
+    type: '上班',
+    datetime: '2025-12-16T10:30:00',
+    lat: '25.0330',
+    lng: '121.5654',
+    note: '測試補打卡理由：系統測試用'
+  };
+  
+  Logger.log('📥 測試參數:');
+  Logger.log(JSON.stringify(testParams, null, 2));
+  Logger.log('');
+  
+  const result = handleAdjustPunch(testParams);
+  
+  Logger.log('');
+  Logger.log('📤 最終測試結果:');
+  Logger.log(JSON.stringify(result, null, 2));
+  Logger.log('');
+  
+  if (result.ok) {
+    Logger.log('✅✅✅ 測試成功！');
+    Logger.log('');
+    Logger.log('📋 請檢查 Google Sheet:');
+    Logger.log('   1. 打開「補打卡申請」工作表');
+    Logger.log('   2. 應該看到新增一筆「待審核」的記錄');
+    Logger.log('   3. 「原因」欄應該有:「測試補打卡理由：系統測試用」');
+    Logger.log('');
+  } else {
+    Logger.log('❌ 測試失敗');
+    Logger.log('   code: ' + result.code);
+    Logger.log('   msg: ' + result.msg);
+  }
+  
+  Logger.log('═══════════════════════════════════════');
 }
 
 // ==================== 出勤記錄相關 ====================
@@ -1841,43 +1995,6 @@ function handleInitApp(params) {
     return { ok: false, code: "INTERNAL_ERROR", msg: error.message };
   }
 }
-// function handleInitApp(params) {
-//   try {
-//     const sessionToken = params.token;
-    
-//     if (!sessionToken) {
-//       return { ok: false, code: "MISSING_SESSION_TOKEN" };
-//     }
-    
-//     // 1. 檢查 Session
-//     const session = checkSession_(sessionToken);
-    
-//     if (!session.ok) {
-//       return { ok: false, code: session.code };
-//     }
-    
-//     // 2. 取得異常記錄
-//     const now = new Date();
-//     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
-//     const userId = session.user.userId;
-    
-//     const records = getAttendanceRecords(month, userId);
-//     const abnormalResults = checkAttendanceAbnormal(records);
-    
-//     // 3. 返回合併結果
-//     return {
-//       ok: true,
-//       user: session.user,
-//       code: session.code,
-//       params: session.params,
-//       abnormalRecords: abnormalResults
-//     };
-    
-//   } catch (error) {
-//     Logger.log('❌ handleInitApp 錯誤: ' + error);
-//     return { ok: false, code: "INTERNAL_ERROR", msg: error.message };
-//   }
-// }
 
 
 /**
