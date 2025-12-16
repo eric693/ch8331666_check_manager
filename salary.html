@@ -644,21 +644,29 @@
                                         <span data-i18n="SALARY_POSITION_ALLOWANCE">職務加給</span>
                                         <span id="detail-position-allowance" class="font-mono">$0</span>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span data-i18n="SALARY_MEAL_ALLOWANCE">伙食費</span>
-                                        <span id="detail-meal-allowance" class="font-mono">$0</span>
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="SALARY_MEAL_ALLOWANCE_LABEL">伙食費</label>
+                                        <input type="number" id="config-meal-allowance" class="form-input" 
+                                               value="0" min="0" step="1" placeholder="0">
+                                        <span class="form-hint" data-i18n="HINT_MEAL_ALLOWANCE">每月伙食補助（常見: 2,400元）</span>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span data-i18n="SALARY_TRANSPORT_ALLOWANCE">交通補助</span>
-                                        <span id="detail-transport-allowance" class="font-mono">$0</span>
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="SALARY_TRANSPORT_ALLOWANCE_LABEL">交通補助</label>
+                                        <input type="number" id="config-transport-allowance" class="form-input" 
+                                               value="0" min="0" step="1" placeholder="0">
+                                        <span class="form-hint" data-i18n="HINT_TRANSPORT_ALLOWANCE">每月交通津貼或油錢補助</span>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span data-i18n="SALARY_ATTENDANCE_BONUS">全勤獎金</span>
-                                        <span id="detail-attendance-bonus" class="font-mono">$0</span>
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="SALARY_ATTENDANCE_BONUS_LABEL">全勤獎金</label>
+                                        <input type="number" id="config-attendance-bonus" class="form-input" 
+                                               value="0" min="0" step="1" placeholder="0">
+                                        <span class="form-hint" data-i18n="HINT_ATTENDANCE_BONUS">未請假可領取（系統自動判斷）</span>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span data-i18n="SALARY_PERFORMANCE_BONUS">績效獎金</span>
-                                        <span id="detail-performance-bonus" class="font-mono">$0</span>
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="SALARY_PERFORMANCE_BONUS_LABEL">績效獎金</label>
+                                        <input type="number" id="config-performance-bonus" class="form-input" 
+                                               value="0" min="0" step="1" placeholder="0">
+                                        <span class="form-hint" data-i18n="HINT_PERFORMANCE_BONUS">依績效考核發放</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span data-i18n="SALARY_WEEKDAY_OT">平日加班費</span>
@@ -690,9 +698,11 @@
                                         <span data-i18n="SALARY_EMPLOYMENT_INS">就業保險費</span>
                                         <span id="detail-employment-fee" class="font-mono">$0</span>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span data-i18n="SALARY_PENSION">勞退自提</span>
-                                        <span id="detail-pension-self" class="font-mono">$0</span>
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="SALARY_PENSION_RATE_LABEL">勞退自提率 (%)</label>
+                                        <input type="number" id="config-pension-rate" class="form-input" 
+                                               value="0" min="0" max="6" step="1" placeholder="0">
+                                        <span class="form-hint" data-i18n="HINT_PENSION_RATE">可選擇 0% ~ 6%</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span data-i18n="SALARY_TAX">所得稅</span>
@@ -839,6 +849,8 @@
                             
                             <div class="form-group">
                                 <label class="form-label" data-i18n="SALARY_OTHER_ALLOWANCES_LABEL">其他津貼</label>
+                                <input type="number" id="config-other-allowances" class="form-input" 
+                                       value="0" min="0" step="1" placeholder="0">
                                 <span class="form-hint" data-i18n="HINT_OTHER_ALLOWANCES">其他固定津貼項目</span>
                             </div>
                         </div>
@@ -910,21 +922,29 @@
                         
                         <div class="form-group">
                             <label class="form-label" data-i18n="SALARY_WELFARE_FEE_LABEL">福利金</label>
+                            <input type="number" id="config-welfare-fee" class="form-input" 
+                                   value="0" min="0" step="1" placeholder="0">
                             <span class="form-hint" data-i18n="HINT_WELFARE_FEE">員工福利委員會福利金</span>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label" data-i18n="SALARY_DORMITORY_FEE_LABEL">宿舍費用</label>
+                            <input type="number" id="config-dormitory-fee" class="form-input" 
+                                   value="0" min="0" step="1" placeholder="0">
                             <span class="form-hint" data-i18n="HINT_DORMITORY_FEE">若公司提供宿舍</span>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label" data-i18n="SALARY_GROUP_INSURANCE_LABEL">團保費用</label>
+                            <input type="number" id="config-group-insurance" class="form-input" 
+                                   value="0" min="0" step="1" placeholder="0">
                             <span class="form-hint" data-i18n="HINT_GROUP_INSURANCE">團體保險個人分攤</span>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label" data-i18n="SALARY_OTHER_DEDUCTIONS_LABEL">其他扣款</label>
+                            <input type="number" id="config-other-deductions" class="form-input" 
+                                   value="0" min="0" step="1" placeholder="0">
                             <span class="form-hint" data-i18n="HINT_OTHER_DEDUCTIONS">其他固定扣款項目</span>
                         </div>
                     </div>
