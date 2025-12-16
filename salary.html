@@ -1557,6 +1557,7 @@
             }
         }
 
+        /*
         async function handleHourlyCalculation() {
             const employeeId = document.getElementById('hourly-employee-id').value;
             const hourlyRate = parseFloat(document.getElementById('hourly-rate').value) || 0;
@@ -1613,8 +1614,9 @@
                 netSalary
             });
         }
+        */
 
-        <!-- async function handleHourlyCalculation() {
+        async function handleHourlyCalculation() {
             const employeeIdEl = document.getElementById('hourly-employee-id');
             const yearMonthEl = document.getElementById('hourly-year-month');
             const resultEl = document.getElementById('hourly-calculation-result');
@@ -1654,7 +1656,7 @@
                 console.error('❌ 計算薪資失敗:', error);
                 showNotification('❌ 計算失敗', 'error');
             }
-        } -->
+        }
 
         function displayHourlyCalculation(data) {
             const resultEl = document.getElementById('hourly-calculation-result');
