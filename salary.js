@@ -164,7 +164,7 @@ async function loadEmployeeSalaryByMonth() {
  * ✅ 顯示薪資明細（完整版 - 含所有津貼與扣款）
  */
 function displayEmployeeSalary(data) {
-    console.log('📊 顯示薪資明細（完整版）:', data);
+    console.log('顯示薪資明細（完整版）:', data);
     
     const safeSet = (id, value) => {
         const el = document.getElementById(id);
@@ -209,6 +209,11 @@ function displayEmployeeSalary(data) {
     safeSet('detail-labor-fee', formatCurrency(data['勞保費']));
     safeSet('detail-health-fee', formatCurrency(data['健保費']));
     safeSet('detail-employment-fee', formatCurrency(data['就業保險費']));
+    
+    // ⭐ 勞退自提率
+    const pensionRate = parseFloat(data['勞退自提率']) || 0;
+    safeSet('detail-pension-rate', `${pensionRate}%`);
+    
     safeSet('detail-pension-self', formatCurrency(data['勞退自提']));
     safeSet('detail-income-tax', formatCurrency(data['所得稅']));
     safeSet('detail-leave-deduction', formatCurrency(data['請假扣款']));
@@ -221,9 +226,17 @@ function displayEmployeeSalary(data) {
         (parseFloat(data['其他扣款']) || 0);
     safeSet('detail-other-deductions', formatCurrency(otherDeductions));
     
-    // 銀行資訊
-    safeSet('detail-bank-name', getBankName(data['銀行代碼']));
-    safeSet('detail-bank-account', data['銀行帳號'] || '--');
+    // ⭐⭐⭐ 銀行資訊：自動補零
+    let bankCode = data['銀行代碼'];
+    const bankAccount = data['銀行帳號'];
+    
+    // ⭐ 關鍵修正：自動補零到 3 位數
+    if (bankCode) {
+        bankCode = String(bankCode).padStart(3, '0');
+    }
+    
+    safeSet('detail-bank-name', getBankName(bankCode));
+    safeSet('detail-bank-account', bankAccount || '--');
     
     console.log('✅ 薪資明細顯示完成（完整版）');
 }
@@ -386,7 +399,9 @@ async function handleSalaryConfigSubmit(e) {
     const otherDeductions = safeGetValue('config-other-deductions') || '0';
     
     // 其他資訊
-    const bankCode = safeGetValue('config-bank-code');
+    const bankCodeRaw = document.getElementById('config-bank-code').value;
+    const bankCode = bankCodeRaw ? String(bankCodeRaw).padStart(3, '0') : '';
+    // const bankCode = safeGetValue('config-bank-code');
     const bankAccount = safeGetValue('config-bank-account');
     const hireDate = safeGetValue('config-hire-date');
     const paymentDay = safeGetValue('config-payment-day') || '5';
