@@ -2260,7 +2260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const params = new URLSearchParams(window.location.search);
     const otoken = params.get('code');
-    
+    const translationPromise = loadTranslations(currentLang);
     if (otoken) {
         try {
             const res = await callApifetch(`getProfile&otoken=${otoken}`);
@@ -2296,6 +2296,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 
                 showNotification(t("LOGIN_SUCCESS"), "success");
+
+                // ⭐⭐⭐ 關鍵：UI 顯示後才載入異常記錄（不阻塞登入）
+                loadAbnormalRecordsInBackground();
                 
                 // 初始化生物辨識（背景執行）
                 initBiometricPunch();
