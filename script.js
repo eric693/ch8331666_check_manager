@@ -410,85 +410,229 @@ const showNotification = (message, type = 'success') => {
 
 // 確保登入
 // script.js - 完整替換 ensureLogin 函數
+async function ensureLogin() 
+{
+    return new Promise(async (resolve) => {
+      const token = localStorage.getItem("sessionToken");
+      
+      if (!token) {
+        showLoginUI();
+        resolve(false);
+        return;
+      }
+      
+      // ⭐⭐⭐ 關鍵新增：檢查本地快取
+      const cachedUser = localStorage.getItem("cachedUser");
+      const cacheTime = localStorage.getItem("cacheTime");
+      const now = Date.now();
+      
+      // 如果快取存在且未過期（5 分鐘內）
+      if (cachedUser && cacheTime && (now - parseInt(cacheTime)) < 5 * 60 * 1000) {
+        console.log('✅ 使用快取，秒速登入');
+        
+        const user = JSON.parse(cachedUser);
+        
+        // 直接顯示 UI（不等待 API）
+        if (user.dept === "管理員") {
+          document.getElementById('tab-admin-btn').style.display = 'block';
+        }
+        
+        document.getElementById("user-name").textContent = user.name;
+        document.getElementById("profile-img").src = user.picture;
+        localStorage.setItem("sessionUserId", user.userId);
+        
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('user-header').style.display = 'flex';
+        document.getElementById('main-app').style.display = 'block';
+        
+        // 背景驗證（不阻塞 UI）
+        checkSessionInBackground(token);
+        
+        // 背景載入異常記錄
+        loadAbnormalRecordsInBackground();
+        
+        resolve(true);
+        return;
+      }
+      
+      // 快取過期或不存在，正常流程
+      document.getElementById("status").textContent = t("CHECKING_LOGIN");
+      
+      try {
+        const res = await callApifetch("initApp");
+        
+        if (res.ok) {
+          console.log('✅ initApp 成功，儲存快取');
+          
+          // ⭐ 儲存快取
+          localStorage.setItem("cachedUser", JSON.stringify(res.user));
+          localStorage.setItem("cacheTime", Date.now().toString());
+          
+          if (res.user.dept === "管理員") {
+            document.getElementById('tab-admin-btn').style.display = 'block';
+          }
+          
+          document.getElementById("user-name").textContent = res.user.name;
+          document.getElementById("profile-img").src = res.user.picture || res.user.rate;
+          localStorage.setItem("sessionUserId", res.user.userId);
+          
+          showNotification(t("LOGIN_SUCCESS"));
+          
+          document.getElementById('login-section').style.display = 'none';
+          document.getElementById('user-header').style.display = 'flex';
+          document.getElementById('main-app').style.display = 'block';
+          
+          renderAbnormalRecords(res.abnormalRecords);
+          
+          resolve(true);
+        } else {
+          console.error('❌ initApp 失敗');
+          
+          // 清除快取
+          localStorage.removeItem("cachedUser");
+          localStorage.removeItem("cacheTime");
+          
+          showLoginUI();
+          showNotification(`❌ ${t(res.code || "UNKNOWN_ERROR")}`, "error");
+          resolve(false);
+        }
+      } catch (err) {
+        console.error('❌ ensureLogin 錯誤:', err);
+        
+        localStorage.removeItem("cachedUser");
+        localStorage.removeItem("cacheTime");
+        
+        showLoginUI();
+        resolve(false);
+      }
+    });
 
+
+/**
+ * 背景驗證 Session（不阻塞 UI）
+ */
+async function checkSessionInBackground(token) {
+    try {
+      const res = await callApifetch("checkSession&token=" + token);
+      
+      if (!res.ok) {
+        console.log('⚠️ Session 已失效');
+        localStorage.removeItem("cachedUser");
+        localStorage.removeItem("cacheTime");
+        showNotification('登入已過期，請重新登入', 'warning');
+        
+        setTimeout(() => {
+          showLoginUI();
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('背景驗證失敗:', error);
+    }
+}}
+
+/**
+ * 背景載入異常記錄（不阻塞 UI）
+ */
+async function loadAbnormalRecordsInBackground() {
+    try {
+      const now = new Date();
+      const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const userId = localStorage.getItem('sessionUserId');
+      
+      const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
+      
+      if (res.ok) {
+        renderAbnormalRecords(res.records);
+      }
+    } catch (error) {
+      console.error('載入異常記錄失敗:', error);
+    }
+}
+  
+function showLoginUI() {
+    document.getElementById('login-btn').style.display = 'block';
+    document.getElementById('user-header').style.display = 'none';
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById("status").textContent = t("SUBTITLE_LOGIN");
+}
 /**
  * ⭐ 確保登入（優化版 - 使用合併 API）
  */
-async function ensureLogin() {
-    return new Promise(async (resolve) => {
-        if (localStorage.getItem("sessionToken")) {
-            document.getElementById("status").textContent = t("CHECKING_LOGIN");
+// async function ensureLogin() {
+//     return new Promise(async (resolve) => {
+//         if (localStorage.getItem("sessionToken")) {
+//             document.getElementById("status").textContent = t("CHECKING_LOGIN");
             
-            try {
-                // ⭐⭐⭐ 關鍵修改：改用合併的 initApp API
-                const res = await callApifetch("initApp");
+//             try {
+//                 // ⭐⭐⭐ 關鍵修改：改用合併的 initApp API
+//                 const res = await callApifetch("initApp");
                 
-                if (res.ok) {
-                    console.log('✅ initApp 成功', res);
+//                 if (res.ok) {
+//                     console.log('✅ initApp 成功', res);
     
-                    // 檢查是否為管理員
-                    if (res.user.dept === "管理員") {
-                        console.log('👑 管理員身份:', res.user.dept);
-                        document.getElementById('tab-admin-btn').style.display = 'block';
-                    }
+//                     // 檢查是否為管理員
+//                     if (res.user.dept === "管理員") {
+//                         console.log('👑 管理員身份:', res.user.dept);
+//                         document.getElementById('tab-admin-btn').style.display = 'block';
+//                     }
                     
-                    // 設定使用者資訊
-                    document.getElementById("user-name").textContent = res.user.name;
-                    document.getElementById("profile-img").src = res.user.picture || res.user.rate;
+//                     // 設定使用者資訊
+//                     document.getElementById("user-name").textContent = res.user.name;
+//                     document.getElementById("profile-img").src = res.user.picture || res.user.rate;
                     
-                    // 儲存使用者 ID
-                    localStorage.setItem("sessionUserId", res.user.userId);
+//                     // 儲存使用者 ID
+//                     localStorage.setItem("sessionUserId", res.user.userId);
                     
-                    // 顯示成功訊息
-                    showNotification(t("LOGIN_SUCCESS"));
+//                     // 顯示成功訊息
+//                     showNotification(t("LOGIN_SUCCESS"));
                     
-                    // 切換介面
-                    document.getElementById('login-section').style.display = 'none';
-                    document.getElementById('user-header').style.display = 'flex';
-                    document.getElementById('main-app').style.display = 'block';
+//                     // 切換介面
+//                     document.getElementById('login-section').style.display = 'none';
+//                     document.getElementById('user-header').style.display = 'flex';
+//                     document.getElementById('main-app').style.display = 'block';
                     
-                    // ⭐⭐⭐ 直接渲染異常記錄，不需要再呼叫 checkAbnormal()
-                    renderAbnormalRecords(res.abnormalRecords);
+//                     // ⭐⭐⭐ 直接渲染異常記錄，不需要再呼叫 checkAbnormal()
+//                     renderAbnormalRecords(res.abnormalRecords);
                     
-                    resolve(true);
+//                     resolve(true);
                     
-                } else {
-                    // 登入失敗
-                    console.error('❌ initApp 失敗:', res);
+//                 } else {
+//                     // 登入失敗
+//                     console.error('❌ initApp 失敗:', res);
                     
-                    const errorMsg = t(res.code || "UNKNOWN_ERROR");
-                    showNotification(`❌ ${errorMsg}`, "error");
+//                     const errorMsg = t(res.code || "UNKNOWN_ERROR");
+//                     showNotification(`❌ ${errorMsg}`, "error");
                     
-                    document.getElementById("status").textContent = t("PLEASE_RELOGIN");
-                    document.getElementById('login-btn').style.display = 'block';
-                    document.getElementById('user-header').style.display = 'none';
-                    document.getElementById('main-app').style.display = 'none';
+//                     document.getElementById("status").textContent = t("PLEASE_RELOGIN");
+//                     document.getElementById('login-btn').style.display = 'block';
+//                     document.getElementById('user-header').style.display = 'none';
+//                     document.getElementById('main-app').style.display = 'none';
                     
-                    resolve(false);
-                }
+//                     resolve(false);
+//                 }
                 
-            } catch (err) {
-                console.error('❌ ensureLogin 錯誤:', err);
+//             } catch (err) {
+//                 console.error('❌ ensureLogin 錯誤:', err);
                 
-                document.getElementById('login-btn').style.display = 'block';
-                document.getElementById('user-header').style.display = 'none';
-                document.getElementById('main-app').style.display = 'none';
-                document.getElementById("status").textContent = t("PLEASE_RELOGIN");
+//                 document.getElementById('login-btn').style.display = 'block';
+//                 document.getElementById('user-header').style.display = 'none';
+//                 document.getElementById('main-app').style.display = 'none';
+//                 document.getElementById("status").textContent = t("PLEASE_RELOGIN");
                 
-                resolve(false);
-            }
+//                 resolve(false);
+//             }
             
-        } else {
-            // 未登入
-            document.getElementById('login-btn').style.display = 'block';
-            document.getElementById('user-header').style.display = 'none';
-            document.getElementById('main-app').style.display = 'none';
-            document.getElementById("status").textContent = t("SUBTITLE_LOGIN");
+//         } else {
+//             // 未登入
+//             document.getElementById('login-btn').style.display = 'block';
+//             document.getElementById('user-header').style.display = 'none';
+//             document.getElementById('main-app').style.display = 'none';
+//             document.getElementById("status").textContent = t("SUBTITLE_LOGIN");
             
-            resolve(false);
-        }
-    });
-}
+//             resolve(false);
+//         }
+//     });
+// }
 // script.js - 在 checkAbnormal 函數附近加入
 /**
  * ⭐ 渲染異常記錄（從 initApp 返回的資料）
