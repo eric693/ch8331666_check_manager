@@ -6,7 +6,7 @@ const LINE_CHANNEL_SECRET = PropertiesService.getScriptProperties().getProperty(
 const LINE_REDIRECT_URL   = "https://eric693.github.io/check_manager_plus/";
 
 // ==================== Session 設定 ====================
-const SESSION_TTL_MS = 1000 * 60 * 60 * 24; // 1 天
+const SESSION_TTL_MS = 7000 * 60 * 60 * 24; // 1 天
 const TOKEN_LENGTH   = 36;
 
 // ==================== 工作表名稱 ====================

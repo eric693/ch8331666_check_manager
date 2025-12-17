@@ -1,19 +1,110 @@
 // Handlers.gs - 完整版本（包含原有功能 + 薪資系統完全修正版）
 
 // ==================== 登入與認證相關 ====================
+// Handlers.gs - 完全優化版 handleGetProfile
+
+/**
+ * ✅ 優化版：一次完成所有登入流程
+ */
+// Handlers.gs - 修改 handleGetProfile
 
 function handleGetProfile(code) {
-  const tokenResp = exchangeCodeForToken_(code);
-  const profile   = getLineUserInfo_(tokenResp);
-  const sToken    = writeSession_(profile.userId);
-  writeEmployee_(profile);
-  return {
-    ok: true,
-    code: "WELCOME_BACK",
-    params: { name: profile.displayName },
-    sToken
-  };
+  try {
+    const tokenResp = exchangeCodeForToken_(code);
+    const profile = getLineUserInfo_(tokenResp);
+    const sToken = writeSession_(profile.userId);
+    const employee = writeEmployee_(profile);
+    
+    // ⭐⭐⭐ 關鍵：不再在這裡查詢異常記錄
+    return {
+      ok: true,
+      code: "WELCOME_BACK",
+      params: { name: profile.displayName },
+      sToken: sToken,
+      user: {
+        userId: profile.userId,
+        employeeId: profile.userId,
+        email: profile.email || "",
+        name: profile.displayName,
+        picture: profile.pictureUrl,
+        dept: employee[5] || "員工",
+        status: "啟用"
+      }
+      // ⭐ 移除 abnormalRecords
+    };
+    
+  } catch (error) {
+    return { ok: false, code: "ERR_LOGIN_FAILED", msg: error.message };
+  }
 }
+// function handleGetProfile(code) {
+//   try {
+//     Logger.log('📋 開始登入流程');
+    
+//     // 步驟 1：兌換 LINE Token
+//     const tokenResp = exchangeCodeForToken_(code);
+    
+//     // 步驟 2：取得 LINE 使用者資料
+//     const profile = getLineUserInfo_(tokenResp);
+    
+//     // 步驟 3：建立 Session
+//     const sToken = writeSession_(profile.userId);
+    
+//     // 步驟 4：寫入/更新員工資料
+//     const employee = writeEmployee_(profile);
+    
+//     // ⭐⭐⭐ 關鍵優化：直接返回完整使用者資料 + 異常記錄
+//     // 這樣前端就不需要再呼叫 initApp，減少一次 API 請求
+    
+//     const now = new Date();
+//     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+    
+//     // 取得異常記錄
+//     const records = getAttendanceRecords(month, profile.userId);
+//     const abnormalResults = checkAttendanceAbnormal(records);
+    
+//     Logger.log('✅ 登入完成，返回完整資料');
+    
+//     return {
+//       ok: true,
+//       code: "WELCOME_BACK",
+//       params: { name: profile.displayName },
+//       sToken: sToken,
+//       // ⭐ 新增：直接返回使用者資料
+//       user: {
+//         userId: profile.userId,
+//         employeeId: profile.userId,
+//         email: profile.email || "",
+//         name: profile.displayName,
+//         picture: profile.pictureUrl,
+//         dept: employee[5] || "員工",  // 從 writeEmployee_ 返回的 row 取得部門
+//         status: "啟用"
+//       },
+//       // ⭐ 新增：直接返回異常記錄
+//       abnormalRecords: abnormalResults
+//     };
+    
+//   } catch (error) {
+//     Logger.log('❌ 登入失敗: ' + error);
+//     return {
+//       ok: false,
+//       code: "ERR_LOGIN_FAILED",
+//       msg: error.message
+//     };
+//   }
+// }
+// function handleGetProfile(code) {
+//   const tokenResp = exchangeCodeForToken_(code);
+//   const profile   = getLineUserInfo_(tokenResp);
+//   const sToken    = writeSession_(profile.userId);
+//   writeEmployee_(profile);
+//   return {
+//     ok: true,
+//     code: "WELCOME_BACK",
+//     params: { name: profile.displayName },
+//     sToken
+//   };
+// }
 
 function handleGetLoginUrl() {
   const baseUrl = LINE_REDIRECT_URL;
@@ -1995,6 +2086,43 @@ function handleInitApp(params) {
     return { ok: false, code: "INTERNAL_ERROR", msg: error.message };
   }
 }
+// function handleInitApp(params) {
+//   try {
+//     const sessionToken = params.token;
+    
+//     if (!sessionToken) {
+//       return { ok: false, code: "MISSING_SESSION_TOKEN" };
+//     }
+    
+//     // 1. 檢查 Session
+//     const session = checkSession_(sessionToken);
+    
+//     if (!session.ok) {
+//       return { ok: false, code: session.code };
+//     }
+    
+//     // 2. 取得異常記錄
+//     const now = new Date();
+//     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+//     const userId = session.user.userId;
+    
+//     const records = getAttendanceRecords(month, userId);
+//     const abnormalResults = checkAttendanceAbnormal(records);
+    
+//     // 3. 返回合併結果
+//     return {
+//       ok: true,
+//       user: session.user,
+//       code: session.code,
+//       params: session.params,
+//       abnormalRecords: abnormalResults
+//     };
+    
+//   } catch (error) {
+//     Logger.log('❌ handleInitApp 錯誤: ' + error);
+//     return { ok: false, code: "INTERNAL_ERROR", msg: error.message };
+//   }
+// }
 
 
 /**
