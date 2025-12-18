@@ -275,9 +275,9 @@ function formatDateTimeLocal(isoString) {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     
     return `${year}-${month}-${day} ${hours}:${minutes}`;
-  }
+}
 /**
- * 渲染請假紀錄（支援時數顯示）
+ * 渲染請假記錄（只顯示小時數）
  */
 function renderLeaveRecords(records) {
     const listEl = document.getElementById('leave-records-list');
@@ -285,69 +285,84 @@ function renderLeaveRecords(records) {
     
     listEl.innerHTML = '';
     
+    if (!records || records.length === 0) {
+        listEl.innerHTML = `
+            <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                <span data-i18n="NO_LEAVE_RECORDS">目前沒有請假記錄</span>
+            </div>
+        `;
+        renderTranslations(listEl);
+        return;
+    }
+    
     records.forEach(record => {
-        const li = document.createElement('li');
-        li.className = 'p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
+        const card = document.createElement('div');
+        card.className = 'card p-4 hover:shadow-lg transition-shadow';
         
-        // 狀態顏色
-        let statusClass = 'text-yellow-600 dark:text-yellow-400';
+        // 狀態標籤樣式
+        let statusClass = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+        let statusText = '待審核';
+        
         if (record.status === 'APPROVED') {
-            statusClass = 'text-green-600 dark:text-green-400';
+            statusClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+            statusText = '已核准';
         } else if (record.status === 'REJECTED') {
-            statusClass = 'text-red-600 dark:text-red-400';
+            statusClass = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+            statusText = '已拒絕';
         }
         
-        // 格式化時間顯示
-        let timeDisplay = '';
-        if (record.startDateTime && record.endDateTime) {
-            // 新格式：顯示完整時間（使用 formatDateTimeLocal 格式化）
-            timeDisplay = `${formatDateTimeLocal(record.startDateTime)} ~ ${formatDateTimeLocal(record.endDateTime)}`;
-        } else if (record.startDate && record.endDate) {
-            // 舊格式：只有日期
-            timeDisplay = `${formatLeaveDate(record.startDate)} ~ ${formatLeaveDate(record.endDate)}`;
-        }
+        // ⭐ 只顯示小時數，移除天數
+        const workHoursDisplay = `${record.workHours} 小時`;
         
-        // 顯示時數或天數
-        let durationDisplay = '';
-        if (record.workHours !== undefined) {
-            durationDisplay = `${record.workHours} 小時 (${record.days} 天)`;
-        } else if (record.days !== undefined) {
-            durationDisplay = `${record.days} 天`;
-        }
-        
-        li.innerHTML = `
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <p class="font-medium text-gray-800 dark:text-white">
-                        <span data-i18n-key="${record.leaveType}">${t(record.leaveType)}</span>
-                    </p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                        ${timeDisplay}
-                    </p>
-                    ${durationDisplay ? `
-                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                            ${durationDisplay}
-                        </p>
-                    ` : ''}
-                </div>
-                <span class="${statusClass} font-semibold text-sm" data-i18n-key="${record.status}">
-                    ${t(record.status)}
+        card.innerHTML = `
+            <div class="flex justify-between items-start mb-3">
+                <h3 class="font-bold text-lg text-gray-800 dark:text-white" 
+                    data-i18n-key="${record.leaveType}">
+                    ${t(record.leaveType)}
+                </h3>
+                <span class="px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
+                    ${statusText}
                 </span>
             </div>
-            ${record.reason ? `
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    <span data-i18n="LEAVE_REASON_LABEL">原因：</span>${record.reason}
-                </p>
-            ` : ''}
-            ${record.reviewComment ? `
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    <span data-i18n="REVIEW_COMMENT_LABEL">審核意見：</span>${record.reviewComment}
-                </p>
-            ` : ''}
+            
+            <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>${record.startTime} ~ ${record.endTime}</span>
+                </div>
+                
+                <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="font-medium text-indigo-600 dark:text-indigo-400">
+                        ${workHoursDisplay}
+                    </span>
+                </div>
+                
+                <div class="flex items-start">
+                    <svg class="w-4 h-4 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <span data-i18n="REASON_LABEL">請假原因:</span>
+                    <span class="ml-1">${record.reason}</span>
+                </div>
+                
+                ${record.reviewerComment ? `
+                    <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div class="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <span data-i18n="REVIEWER_COMMENT">審核意見:</span>
+                        </div>
+                        <div class="text-gray-600 dark:text-gray-400">${record.reviewerComment}</div>
+                    </div>
+                ` : ''}
+            </div>
         `;
         
-        listEl.appendChild(li);
-        renderTranslations(li);
+        listEl.appendChild(card);
+        renderTranslations(card);
     });
 }
 
@@ -609,5 +624,122 @@ async function handleReviewLeave(button, action) {
         showNotification(t('NETWORK_ERROR'), 'error');
     } finally {
         generalButtonState(button, 'idle');
+    }
+}
+
+
+/**
+ * 驗證請假表單（限制整數小時 + 8小時上限）
+ */
+function validateLeaveForm() {
+    const leaveType = document.getElementById('leave-type').value;
+    const startTime = document.getElementById('leave-start').value;
+    const endTime = document.getElementById('leave-end').value;
+    const reason = document.getElementById('leave-reason').value;
+    
+    // 基本驗證
+    if (!leaveType) {
+        showNotification('請選擇假別', 'error');
+        return false;
+    }
+    
+    if (!startTime) {
+        showNotification('請選擇開始時間', 'error');
+        return false;
+    }
+    
+    if (!endTime) {
+        showNotification('請選擇結束時間', 'error');
+        return false;
+    }
+    
+    if (!reason.trim()) {
+        showNotification('請填寫請假原因', 'error');
+        return false;
+    }
+    
+    // 計算工時
+    const workHours = calculateWorkHours(startTime, endTime);
+    
+    if (workHours <= 0) {
+        showNotification('請假時數必須大於 0', 'error');
+        return false;
+    }
+    
+    // ⭐ 檢查是否為整數小時
+    if (!Number.isInteger(workHours)) {
+        showNotification(`請假時數必須是整數小時，目前為 ${workHours} 小時`, 'error');
+        return false;
+    }
+    
+    // ⭐ 檢查是否為同一天
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    
+    if (start.toDateString() === end.toDateString()) {
+        // 同一天：限制不超過 8 小時
+        if (workHours > 8) {
+            showNotification('單日請假不能超過 8 小時（扣除午休後）', 'error');
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * 更新工時預覽（即時顯示）
+ */
+function updateWorkHoursPreview() {
+    const startTime = document.getElementById('leave-start').value;
+    const endTime = document.getElementById('leave-end').value;
+    const previewEl = document.getElementById('work-hours-preview');
+    const valueEl = document.getElementById('work-hours-value');
+    const warningEl = document.getElementById('work-hours-warning');
+    
+    if (!startTime || !endTime) {
+        previewEl.classList.add('hidden');
+        return;
+    }
+    
+    const workHours = calculateWorkHours(startTime, endTime);
+    
+    // 顯示預覽區塊
+    previewEl.classList.remove('hidden');
+    valueEl.textContent = `${workHours} 小時`;
+    
+    // 清除之前的警告
+    warningEl.classList.add('hidden');
+    warningEl.textContent = '';
+    
+    // 檢查各種錯誤情況
+    let hasError = false;
+    let errorMsg = '';
+    
+    if (workHours <= 0) {
+        hasError = true;
+        errorMsg = '❌ 結束時間必須晚於開始時間';
+    } else if (!Number.isInteger(workHours)) {
+        hasError = true;
+        errorMsg = `❌ 請假時數必須是整數小時（目前為 ${workHours} 小時）`;
+    } else {
+        const start = new Date(startTime);
+        const end = new Date(endTime);
+        
+        if (start.toDateString() === end.toDateString() && workHours > 8) {
+            hasError = true;
+            errorMsg = '❌ 單日請假不能超過 8 小時（已扣除午休）';
+        }
+    }
+    
+    // 顯示警告訊息
+    if (hasError) {
+        warningEl.classList.remove('hidden');
+        warningEl.textContent = errorMsg;
+        valueEl.classList.add('text-red-600', 'dark:text-red-400');
+        valueEl.classList.remove('text-blue-600', 'dark:text-blue-300');
+    } else {
+        valueEl.classList.remove('text-red-600', 'dark:text-red-400');
+        valueEl.classList.add('text-blue-600', 'dark:text-blue-300');
     }
 }
