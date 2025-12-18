@@ -308,18 +308,25 @@ async function submitLeaveApplication() {
         console.log('📥 後端回應:', response);
         
         if (response.ok) {
-            showNotification('請假申請已提交', 'success');
+            showNotification(`請假申請已提交！時數：${workHours} 小時`, 'success');
             
             // 清空表單
             document.getElementById('leave-type').value = '';
             document.getElementById('leave-start-datetime').value = '';
             document.getElementById('leave-end-datetime').value = '';
             document.getElementById('leave-reason').value = '';
-            document.getElementById('work-hours-preview').classList.add('hidden');
             
-            // 重新載入請假記錄
-            loadLeaveRecords();
-            loadLeaveBalance();
+            const previewEl = document.getElementById('work-hours-preview');
+            if (previewEl) previewEl.classList.add('hidden');
+            
+            // ✅ 使用 await 確保資料重新載入完成
+            console.log('🔄 重新載入假期餘額...');
+            await loadLeaveBalance();
+            
+            console.log('🔄 重新載入請假記錄...');
+            await loadLeaveRecords();
+            
+            console.log('✅ 資料更新完成');
         } else {
             showNotification(response.msg || '提交失敗', 'error');
         }
@@ -410,7 +417,7 @@ async function loadLeaveBalance() {
 }
 
 /**
- * 渲染假期餘額
+ * 渲染假期餘額（顯示小時數）
  */
 function renderLeaveBalance(balance) {
     const listEl = document.getElementById('leave-balance-list');
@@ -435,14 +442,29 @@ function renderLeaveBalance(balance) {
             typeSpan.className = 'font-medium text-gray-800 dark:text-white';
             typeSpan.textContent = t(leaveType);
             
-            const daysSpan = document.createElement('span');
-            daysSpan.className = leaveType === 'ABSENCE_WITHOUT_LEAVE' 
+            // ✅ 將天數轉換為小時數（1天 = 8小時）
+            const days = balance[leaveType];
+            const hours = days * 8;
+            
+            const hoursSpan = document.createElement('span');
+            hoursSpan.className = leaveType === 'ABSENCE_WITHOUT_LEAVE' 
                 ? 'text-red-600 dark:text-red-400 font-bold'
                 : 'text-indigo-600 dark:text-indigo-400 font-bold';
-            daysSpan.textContent = `${balance[leaveType]} 天`;
+            hoursSpan.textContent = `${hours} 小時`;
+            
+            // 添加小字顯示天數
+            const daysHint = document.createElement('span');
+            daysHint.className = 'text-xs text-gray-500 dark:text-gray-400 ml-1';
+            daysHint.textContent = `(${days} 天)`;
             
             item.appendChild(typeSpan);
-            item.appendChild(daysSpan);
+            
+            const rightContainer = document.createElement('div');
+            rightContainer.className = 'flex items-baseline space-x-1';
+            rightContainer.appendChild(hoursSpan);
+            rightContainer.appendChild(daysHint);
+            
+            item.appendChild(rightContainer);
             listEl.appendChild(item);
         }
     });
@@ -457,6 +479,8 @@ async function loadLeaveRecords() {
     const emptyEl = document.getElementById('leave-records-empty');
     const listEl = document.getElementById('leave-records-list');
     
+    console.log('🔄 開始載入請假記錄...');
+    
     try {
         if (loadingEl) loadingEl.style.display = 'block';
         if (emptyEl) emptyEl.style.display = 'none';
@@ -464,11 +488,34 @@ async function loadLeaveRecords() {
         
         const res = await callApifetch(`getEmployeeLeaveRecords&employeeId=${userId}`);
         
+        console.log('📥 後端返回的請假記錄:', res);
+        
         if (loadingEl) loadingEl.style.display = 'none';
         
         if (res.ok && res.records && res.records.length > 0) {
-            renderLeaveRecords(res.records);
+            console.log(`✅ 獲取到 ${res.records.length} 筆記錄`);
+            
+            // ✅ 去重處理：使用 rowNumber 作為唯一標識
+            const uniqueRecords = [];
+            const seenIds = new Set();
+            
+            res.records.forEach(record => {
+                // 使用 rowNumber 或組合鍵作為唯一標識
+                const uniqueKey = record.rowNumber || 
+                    `${record.leaveType}_${record.startDateTime}_${record.endDateTime}_${record.reason}`;
+                
+                if (!seenIds.has(uniqueKey)) {
+                    seenIds.add(uniqueKey);
+                    uniqueRecords.push(record);
+                } else {
+                    console.warn('⚠️ 發現重複記錄:', record);
+                }
+            });
+            
+            console.log(`✅ 去重後剩餘 ${uniqueRecords.length} 筆記錄`);
+            renderLeaveRecords(uniqueRecords);
         } else {
+            console.log('ℹ️ 沒有請假記錄');
             if (emptyEl) emptyEl.style.display = 'block';
         }
     } catch (error) {
@@ -510,9 +557,12 @@ function renderLeaveRecords(records) {
     const listEl = document.getElementById('leave-records-list');
     if (!listEl) return;
     
+    console.log(`📋 開始渲染 ${records.length} 筆請假記錄`);
+    
+    // ✅ 清空現有列表
     listEl.innerHTML = '';
     
-    records.forEach(record => {
+    records.forEach((record, index) => {
         const card = document.createElement('div');
         card.className = 'card p-4 hover:shadow-lg transition-shadow';
         
@@ -533,13 +583,16 @@ function renderLeaveRecords(records) {
         const startTime = formatDateTime(record.startDateTime || record.startTime);
         const endTime = formatDateTime(record.endDateTime || record.endTime);
         
-        console.log('📋 請假記錄:', {
-            原始startDateTime: record.startDateTime,
-            原始endDateTime: record.endDateTime,
-            格式化後startTime: startTime,
-            格式化後endTime: endTime,
-            workHours: record.workHours
-        });
+        // 只在第一筆記錄時輸出範例日誌
+        if (index === 0) {
+            console.log('📋 記錄範例:', {
+                leaveType: record.leaveType,
+                startDateTime: record.startDateTime,
+                endDateTime: record.endDateTime,
+                workHours: record.workHours,
+                status: record.status
+            });
+        }
         
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
@@ -580,6 +633,8 @@ function renderLeaveRecords(records) {
         
         listEl.appendChild(card);
     });
+    
+    console.log(`✅ 渲染完成，共 ${records.length} 筆記錄`);
 }
 
 /**
