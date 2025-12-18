@@ -479,6 +479,31 @@ async function loadLeaveRecords() {
 }
 
 /**
+ * 格式化日期時間顯示（ISO 8601 → 可讀格式）
+ */
+function formatDateTime(isoString) {
+    if (!isoString) return '未設定';
+    
+    try {
+        const date = new Date(isoString);
+        
+        // 檢查是否為有效日期
+        if (isNaN(date.getTime())) return isoString;
+        
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+    } catch (error) {
+        console.error('❌ 日期格式化失敗:', error);
+        return isoString;
+    }
+}
+
+/**
  * 渲染請假記錄
  */
 function renderLeaveRecords(records) {
@@ -504,9 +529,17 @@ function renderLeaveRecords(records) {
         
         const workHoursDisplay = record.workHours ? `${record.workHours} 小時` : '0 小時';
         
-        // 格式化時間顯示
-        const startTime = record.startTime || record.startDateTime || 'undefined';
-        const endTime = record.endTime || record.endDateTime || 'undefined';
+        // ✅ 修正：正確處理時間字段並格式化
+        const startTime = formatDateTime(record.startDateTime || record.startTime);
+        const endTime = formatDateTime(record.endDateTime || record.endTime);
+        
+        console.log('📋 請假記錄:', {
+            原始startDateTime: record.startDateTime,
+            原始endDateTime: record.endDateTime,
+            格式化後startTime: startTime,
+            格式化後endTime: endTime,
+            workHours: record.workHours
+        });
         
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">

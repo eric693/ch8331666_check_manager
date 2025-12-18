@@ -676,6 +676,35 @@
                                 </select>
                             </div>
                             
+                            <!-- 快速選擇時段 -->
+                            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <span data-i18n="QUICK_SELECT">快速選擇</span>
+                                </h3>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" 
+                                            onclick="quickSelectTimeRange('1h')"
+                                            class="px-3 py-2 text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-500 transition-colors">
+                                        1 小時
+                                    </button>
+                                    <button type="button" 
+                                            onclick="quickSelectTimeRange('2h')"
+                                            class="px-3 py-2 text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-500 transition-colors">
+                                        2 小時
+                                    </button>
+                                    <button type="button" 
+                                            onclick="quickSelectTimeRange('4h')"
+                                            class="px-3 py-2 text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-500 transition-colors">
+                                        半天 (4小時)
+                                    </button>
+                                    <button type="button" 
+                                            onclick="quickSelectTimeRange('8h')"
+                                            class="px-3 py-2 text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-500 transition-colors">
+                                        全天 (8小時)
+                                    </button>
+                                </div>
+                            </div>
+                            
                             <!-- 請假時段 -->
                             <div class="space-y-3">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
