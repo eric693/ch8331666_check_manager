@@ -915,64 +915,6 @@ function quickSelectTimeRange(type) {
 }
 
 /**
- * 更新工時預覽（即時顯示）
- */
-function updateWorkHoursPreview() {
-    const startTime = document.getElementById('leave-start').value;
-    const endTime = document.getElementById('leave-end').value;
-    const previewEl = document.getElementById('work-hours-preview');
-    const valueEl = document.getElementById('work-hours-value');
-    const warningEl = document.getElementById('work-hours-warning');
-    
-    if (!startTime || !endTime) {
-        previewEl.classList.add('hidden');
-        return;
-    }
-    
-    const workHours = calculateWorkHours(startTime, endTime);
-    
-    // 顯示預覽區塊
-    previewEl.classList.remove('hidden');
-    valueEl.textContent = `${workHours} 小時`;
-    
-    // 清除之前的警告
-    warningEl.classList.add('hidden');
-    warningEl.textContent = '';
-    
-    // 檢查各種錯誤情況
-    let hasError = false;
-    let errorMsg = '';
-    
-    if (workHours <= 0) {
-        hasError = true;
-        errorMsg = '❌ 結束時間必須晚於開始時間';
-    } else if (!Number.isInteger(workHours)) {
-        hasError = true;
-        errorMsg = `❌ 請假時數必須是整數小時（目前為 ${workHours} 小時）`;
-    } else {
-        const start = new Date(startTime);
-        const end = new Date(endTime);
-        
-        if (start.toDateString() === end.toDateString() && workHours > 8) {
-            hasError = true;
-            errorMsg = '❌ 單日請假不能超過 8 小時（已扣除午休）';
-        }
-    }
-    
-    // 顯示警告訊息
-    if (hasError) {
-        warningEl.classList.remove('hidden');
-        warningEl.textContent = errorMsg;
-        valueEl.classList.add('text-red-600', 'dark:text-red-400');
-        valueEl.classList.remove('text-blue-600', 'dark:text-blue-300');
-    } else {
-        valueEl.classList.remove('text-red-600', 'dark:text-red-400');
-        valueEl.classList.add('text-blue-600', 'dark:text-blue-300');
-    }
-}
-
-
-/**
  * 提交請假申請
  */
 async function submitLeaveApplication() {
