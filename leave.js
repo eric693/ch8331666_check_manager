@@ -399,20 +399,26 @@ function validateLeaveForm() {
 async function loadLeaveBalance() {
     const loadingEl = document.getElementById('leave-balance-loading');
     
+    console.log('🔄 開始載入假期餘額...');
+    
     if (loadingEl) loadingEl.style.display = 'block';
     
     try {
         const res = await callApifetch('getLeaveBalance');
         
+        console.log('📥 後端返回的假期餘額:', res);
+        
         if (res.ok && res.balance) {
+            console.log('✅ 假期餘額數據:', res.balance);
             renderLeaveBalance(res.balance);
         } else {
-            console.error('載入假期餘額失敗:', res);
+            console.error('❌ 載入假期餘額失敗:', res);
         }
     } catch (err) {
-        console.error('載入假期餘額失敗:', err);
+        console.error('❌ 載入假期餘額錯誤:', err);
     } finally {
         if (loadingEl) loadingEl.style.display = 'none';
+        console.log('✅ 假期餘額載入完成');
     }
 }
 
@@ -422,6 +428,8 @@ async function loadLeaveBalance() {
 function renderLeaveBalance(balance) {
     const listEl = document.getElementById('leave-balance-list');
     if (!listEl) return;
+    
+    console.log('📊 開始渲染假期餘額:', balance);
     
     listEl.innerHTML = '';
     
@@ -446,28 +454,24 @@ function renderLeaveBalance(balance) {
             const days = balance[leaveType];
             const hours = days * 8;
             
+            // 輸出主要假別的餘額（避免日誌過多）
+            if (leaveType === 'ANNUAL_LEAVE' || leaveType === 'PERSONAL_LEAVE') {
+                console.log(`  ${leaveType}: ${days} 天 = ${hours} 小時`);
+            }
+            
             const hoursSpan = document.createElement('span');
             hoursSpan.className = leaveType === 'ABSENCE_WITHOUT_LEAVE' 
                 ? 'text-red-600 dark:text-red-400 font-bold'
                 : 'text-indigo-600 dark:text-indigo-400 font-bold';
             hoursSpan.textContent = `${hours} 小時`;
             
-            // 添加小字顯示天數
-            const daysHint = document.createElement('span');
-            daysHint.className = 'text-xs text-gray-500 dark:text-gray-400 ml-1';
-            daysHint.textContent = `(${days} 天)`;
-            
             item.appendChild(typeSpan);
-            
-            const rightContainer = document.createElement('div');
-            rightContainer.className = 'flex items-baseline space-x-1';
-            rightContainer.appendChild(hoursSpan);
-            rightContainer.appendChild(daysHint);
-            
-            item.appendChild(rightContainer);
+            item.appendChild(hoursSpan);
             listEl.appendChild(item);
         }
     });
+    
+    console.log('✅ 假期餘額渲染完成');
 }
 
 /**
@@ -687,13 +691,18 @@ function renderPendingLeaveRequests(requests) {
         const li = document.createElement('li');
         li.className = 'p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
         
+        // ✅ 使用 formatDateTime 格式化時間顯示
         const timeDisplay = req.startDateTime && req.endDateTime
-            ? `${req.startDateTime} ~ ${req.endDateTime}`
-            : `${req.startDate} ~ ${req.endDate}`;
+            ? `${formatDateTime(req.startDateTime)} ~ ${formatDateTime(req.endDateTime)}`
+            : req.startDate && req.endDate
+            ? `${req.startDate} ~ ${req.endDate}`
+            : '時間未設定';
         
         const durationDisplay = req.workHours
             ? `${req.workHours} 小時`
-            : `${req.days} 天`;
+            : req.days
+            ? `${req.days} 天`
+            : '時數未知';
         
         li.innerHTML = `
             <div class="flex flex-col space-y-2">
