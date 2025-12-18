@@ -365,32 +365,6 @@ function handleLeaveTypeChange(e) {
 }
 
 /**
- * 計算請假天數
- */
-function calculateLeaveDays() {
-    const startDate = document.getElementById('leave-start-date').value;
-    const endDate = document.getElementById('leave-end-date').value;
-    const daysInput = document.getElementById('leave-days');
-    
-    if (!startDate || !endDate) return;
-    
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    if (end < start) {
-        showNotification(t('ERR_END_DATE_BEFORE_START'), 'error');
-        daysInput.value = '';
-        return;
-    }
-    
-    // 計算天數（包含起始日）
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    
-    daysInput.value = diffDays;
-}
-
-/**
  * 提交請假申請（小時制修正版）
  */
 async function handleSubmitLeave() {
