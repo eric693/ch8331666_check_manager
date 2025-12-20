@@ -1427,7 +1427,7 @@ async function renderDailyRecords(dateKey) {
                     `;
                 }
                 
-                // ⏰ 加班資訊區塊
+                // 加班資訊區塊
                 let overtimeHtml = '';
                 if (recordData.overtime) {
                     const ot = recordData.overtime;
@@ -1438,7 +1438,7 @@ async function renderDailyRecords(dateKey) {
                                     <svg class="w-4 h-4 mr-2 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                                     </svg>
-                                    ⏰ <span data-i18n="OVERTIME_PERIOD">加班時段</span>
+                                    <span data-i18n="OVERTIME_PERIOD">加班時段</span>
                                 </h5>
                                 <span class="px-2 py-1 bg-orange-600 text-white text-xs font-bold rounded-full">
                                     ${ot.hours} <span data-i18n="UNIT_HOURS">小時</span>
@@ -1458,7 +1458,7 @@ async function renderDailyRecords(dateKey) {
                     `;
                 }
                 
-                // 🏖️ 請假資訊區塊
+                // 請假資訊區塊
                 let leaveHtml = '';
                 if (recordData.leave) {
                     const leave = recordData.leave;
@@ -1487,7 +1487,7 @@ async function renderDailyRecords(dateKey) {
                                         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                                         <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
                                     </svg>
-                                    🏖️ <span data-i18n="LEAVE_INFO_TITLE">請假資訊</span>
+                                    <span data-i18n="LEAVE_INFO_TITLE">請假資訊</span>
                                 </h5>
                                 <span class="px-2 py-1 text-xs font-bold rounded-full ${statusBadgeClass}">
                                     ${statusIcon} ${statusText}
