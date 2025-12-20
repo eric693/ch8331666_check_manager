@@ -923,7 +923,7 @@ async function renderCalendar(date) {
 }
 
 /**
- * ✅ 更新本月出勤統計（含加班時數 - 完整修正版）
+ * ✅ 更新本月出勤統計（含加班時數 - 終極修正版）
  */
 function updateMonthlyStats(records) {
     const totalHoursEl = document.getElementById('stats-total-hours-value');
@@ -960,14 +960,12 @@ function updateMonthlyStats(records) {
                 const totalHoursRaw = diffMs / (1000 * 60 * 60);
                 
                 if (totalHoursRaw > 0) {
-                    // ⭐ 扣除午休 1 小時
                     const lunchBreak = 1;
                     const netHours = totalHoursRaw - lunchBreak;
                     
                     totalHours += netHours;
                     workDays++;
                     
-                    // 計算從打卡記錄自動偵測的加班時數
                     overtimeFromPunch = Math.max(0, netHours - 8);
                     
                     console.log(`${record.date}: 總時長=${totalHoursRaw.toFixed(2)}h, 淨工時=${netHours.toFixed(2)}h, 自動加班=${overtimeFromPunch.toFixed(2)}h`);
@@ -983,14 +981,29 @@ function updateMonthlyStats(records) {
         if (record.overtime) {
             console.log(`${record.date}: 發現加班記錄`, record.overtime);
             
-            // 檢查狀態（不區分大小寫）
-            const status = String(record.overtime.status || '').toLowerCase().trim();
+            // ⭐⭐⭐ 修正 1: 檢查所有可能的狀態欄位
+            const status = String(
+                record.overtime.status || 
+                record.overtime.reviewStatus || 
+                record.overtime.approvalStatus || 
+                ''
+            ).toLowerCase().trim();
             
-            if (status === 'approved') {
+            console.log(`${record.date}: 🔍 完整加班物件=`, JSON.stringify(record.overtime));
+            console.log(`${record.date}: 🔍 狀態值="${status}"`);
+            
+            // ⭐⭐⭐ 修正 2: 如果沒有狀態欄位，直接檢查是否有 hours
+            if (status === 'approved' || status === '已核准') {
                 overtimeFromApplication = parseFloat(record.overtime.hours) || 0;
                 console.log(`${record.date}: ✅ 已核准加班 ${overtimeFromApplication.toFixed(2)}h`);
-            } else {
-                console.log(`${record.date}: ⚠️ 加班狀態=${status}，未計入`);
+            } 
+            else if (status === '' && record.overtime.hours) {
+                // ⭐ 如果沒有狀態，但有加班時數，可能是舊格式或直接寫入
+                overtimeFromApplication = parseFloat(record.overtime.hours) || 0;
+                console.log(`${record.date}: ⚠️ 無狀態但有時數，計入加班 ${overtimeFromApplication.toFixed(2)}h`);
+            }
+            else {
+                console.log(`${record.date}: ❌ 加班狀態="${status}"，未計入`);
             }
         }
         
@@ -1023,12 +1036,11 @@ function updateMonthlyStats(records) {
     abnormalCountEl.textContent = abnormalCount;
     normalDaysEl.textContent = normalDays;
     
-    // ⭐⭐⭐ 關鍵：更新加班時數顯示
+    // ⭐⭐⭐ 更新加班時數顯示
     if (overtimeHoursEl) {
         overtimeHoursEl.textContent = totalOvertimeHours > 0 ? totalOvertimeHours.toFixed(1) : '0';
     }
     
-    // 顯示加班時數統計
     console.log(`✅ 本月統計完成：總工時 ${totalHours.toFixed(1)}h，加班 ${totalOvertimeHours.toFixed(1)}h`);
 }
 
