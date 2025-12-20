@@ -944,7 +944,7 @@ function updateMonthlyStats(records) {
     let workDays = 0;
     let abnormalCount = 0;
     let normalDays = 0;
-    let totalOvertimeHours = 0;  // 👈 新增：加班時數統計
+    let totalOvertimeHours = 0;
     
     records.forEach(record => {
         // 計算工時
@@ -956,20 +956,25 @@ function updateMonthlyStats(records) {
                 const inTime = new Date(`${record.date} ${punchIn.time}`);
                 const outTime = new Date(`${record.date} ${punchOut.time}`);
                 const diffMs = outTime - inTime;
-                const hours = diffMs / (1000 * 60 * 60);
+                const totalHoursRaw = diffMs / (1000 * 60 * 60);
                 
-                if (hours > 0) {
-                    totalHours += hours;
+                if (totalHoursRaw > 0) {
+                    // ⭐ 扣除午休 1 小時
+                    const lunchBreak = 1;
+                    const netHours = totalHoursRaw - lunchBreak;
+                    
+                    totalHours += netHours;
                     workDays++;
+                    
+                    // 計算加班時數
+                    const overtimeForDay = Math.max(0, netHours - 8);
+                    totalOvertimeHours += overtimeForDay;
+                    
+                    console.log(`${record.date}: 總時長=${totalHoursRaw.toFixed(2)}h, 淨工時=${netHours.toFixed(2)}h, 加班=${overtimeForDay.toFixed(2)}h`);
                 }
             } catch (e) {
                 console.error('計算工時失敗:', e);
             }
-        }
-        
-        // 👉 累計加班時數
-        if (record.overtime && record.overtime.hours) {
-            totalOvertimeHours += record.overtime.hours;
         }
         
         // 判斷是否為異常記錄
@@ -993,70 +998,10 @@ function updateMonthlyStats(records) {
     abnormalCountEl.textContent = abnormalCount;
     normalDaysEl.textContent = normalDays;
     
-    // 👉 顯示加班時數（如果有的話）
-    console.log(`📊 本月統計：工時 ${totalHours.toFixed(1)}h，加班 ${totalOvertimeHours.toFixed(1)}h`);
+    // 顯示加班時數統計
+    console.log(`📊 本月統計：總工時 ${totalHours.toFixed(1)}h，加班 ${totalOvertimeHours.toFixed(1)}h`);
 }
-// function updateMonthlyStats(records) {
-//     // 取得統計元素（只取數值部分）
-//     const totalHoursEl = document.getElementById('stats-total-hours-value');
-//     const workDaysEl = document.getElementById('stats-work-days-value');
-//     const abnormalCountEl = document.getElementById('stats-abnormal-count-value');
-//     const normalDaysEl = document.getElementById('stats-normal-days-value');
-    
-//     if (!totalHoursEl || !workDaysEl || !abnormalCountEl || !normalDaysEl) {
-//         console.warn('找不到統計元素');
-//         return;
-//     }
-    
-//     // 初始化統計變數
-//     let totalHours = 0;
-//     let workDays = 0;
-//     let abnormalCount = 0;
-//     let normalDays = 0;
-    
-//     // 遍歷所有記錄計算統計
-//     records.forEach(record => {
-//         // 計算工時
-//         const punchIn = record.record ? record.record.find(r => r.type === '上班') : null;
-//         const punchOut = record.record ? record.record.find(r => r.type === '下班') : null;
-        
-//         if (punchIn && punchOut) {
-//             try {
-//                 const inTime = new Date(`${record.date} ${punchIn.time}`);
-//                 const outTime = new Date(`${record.date} ${punchOut.time}`);
-//                 const diffMs = outTime - inTime;
-//                 const hours = diffMs / (1000 * 60 * 60);
-                
-//                 if (hours > 0) {
-//                     totalHours += hours;
-//                     workDays++;
-//                 }
-//             } catch (e) {
-//                 console.error('計算工時失敗:', e);
-//             }
-//         }
-        
-//         // 判斷是否為異常記錄
-//         const abnormalReasons = [
-//             'STATUS_PUNCH_IN_MISSING',
-//             'STATUS_PUNCH_OUT_MISSING',
-//             'STATUS_REPAIR_PENDING',
-//             'STATUS_REPAIR_REJECTED'
-//         ];
-        
-//         if (abnormalReasons.includes(record.reason)) {
-//             abnormalCount++;
-//         } else if (record.reason === 'STATUS_PUNCH_NORMAL' || record.reason === 'STATUS_REPAIR_APPROVED') {
-//             normalDays++;
-//         }
-//     });
-    
-//     // 更新 DOM（只更新數值，不含單位）
-//     totalHoursEl.textContent = totalHours > 0 ? totalHours.toFixed(1) : '0';
-//     workDaysEl.textContent = workDays;
-//     abnormalCountEl.textContent = abnormalCount;
-//     normalDaysEl.textContent = normalDays;
-// }
+
 async function submitAdjustPunch(date, type, note) {
     try {
         showNotification("正在提交補打卡...", "info");
@@ -1380,6 +1325,44 @@ async function renderDailyRecords(dateKey) {
                     `;
                 }
                 
+                let overtimeAlertHtml = '';
+                if (hasOvertime && overtimeHours > 0) {
+                    overtimeAlertHtml = `
+                        <div class="mt-3 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <svg class="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <h4 class="text-sm font-bold text-orange-800 dark:text-orange-300">
+                                            偵測到加班時數
+                                        </h4>
+                                    </div>
+                                    <div class="ml-7 space-y-1">
+                                        <p class="text-sm text-orange-700 dark:text-orange-400">
+                                            <span class="font-semibold">總工時：</span>${workHoursDecimal.toFixed(2)} 小時
+                                        </p>
+                                        <p class="text-sm text-orange-700 dark:text-orange-400">
+                                            <span class="font-semibold">標準工時：</span>8 小時（已扣除午休 1 小時）
+                                        </p>
+                                        <p class="text-sm font-bold text-orange-800 dark:text-orange-200">
+                                            <span class="text-orange-600 dark:text-orange-400"> 加班時數：</span>${overtimeHours.toFixed(2)} 小時
+                                        </p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onclick="quickApplyOvertime('${recordData.date}', '${punchInRecord.time}', '${punchOutRecord.time}', ${overtimeHours.toFixed(2)})"
+                                    class="ml-4 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    <span>快速申請</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
                 // 請假資訊區塊
                 let leaveHtml = '';
                 if (recordData.leave) {
@@ -3237,7 +3220,9 @@ async function exportEmployeePunchReport() {
             // 計算工時
             let workHours = '-';
             let workHoursDecimal = 0;
-            
+            let overtimeHours = 0;
+            let hasOvertime = false;
+
             if (punchInRecord && punchOutRecord) {
                 try {
                     // 使用完整的日期時間來計算
@@ -3246,17 +3231,40 @@ async function exportEmployeePunchReport() {
                     const diffMs = outTime - inTime;
                     
                     if (diffMs > 0) {
-                        workHoursDecimal = diffMs / (1000 * 60 * 60);
-                        const hours = Math.floor(workHoursDecimal);
-                        const minutes = Math.round((workHoursDecimal - hours) * 60);
+                        // 計算總工時（小時）
+                        const totalHours = diffMs / (1000 * 60 * 60);
+                        
+                        // 扣除午休 1 小時
+                        const lunchBreak = 1;
+                        const netWorkHours = totalHours - lunchBreak;
+                        
+                        // 計算加班時數（超過標準工時 8 小時的部分）
+                        const standardWorkHours = 8;
+                        overtimeHours = Math.max(0, netWorkHours - standardWorkHours);
+                        
+                        // 格式化顯示
+                        workHoursDecimal = netWorkHours;
+                        const hours = Math.floor(netWorkHours);
+                        const minutes = Math.round((netWorkHours - hours) * 60);
                         workHours = `${hours}小時${minutes}分`;
+                        
+                        // 標記是否有加班
+                        hasOvertime = overtimeHours > 0.5; // 超過 30 分鐘才算加班
+                        
+                        console.log(`工時計算:`, {
+                            date: record.date,
+                            總時長: totalHours.toFixed(2),
+                            扣除午休: lunchBreak,
+                            淨工時: netWorkHours.toFixed(2),
+                            加班時數: overtimeHours.toFixed(2)
+                        });
                     }
                 } catch (e) {
                     console.error('計算工時失敗:', e);
                     workHours = '計算錯誤';
                 }
             }
-            
+                        
             // 翻譯狀態
             const statusText = t(record.reason) || record.reason;
             

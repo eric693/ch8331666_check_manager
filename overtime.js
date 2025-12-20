@@ -413,3 +413,58 @@ function generalButtonState(button, state, loadingText = '處理中...') {
         }
     }
 }
+
+/**
+ * ⭐ 快速申請加班（從每日記錄觸發）
+ * @param {string} date - 加班日期 (YYYY-MM-DD)
+ * @param {string} startTime - 開始時間 (HH:mm)
+ * @param {string} endTime - 結束時間 (HH:mm)
+ * @param {number} hours - 加班時數
+ */
+function quickApplyOvertime(date, startTime, endTime, hours) {
+    console.log('🚀 快速申請加班:', { date, startTime, endTime, hours });
+    
+    // 切換到加班頁籤
+    switchTab('overtime-view');
+    
+    // 等待頁面切換完成後填入表單
+    setTimeout(() => {
+        const dateInput = document.getElementById('overtime-date');
+        const startTimeInput = document.getElementById('overtime-start-time');
+        const endTimeInput = document.getElementById('overtime-end-time');
+        const hoursInput = document.getElementById('overtime-hours');
+        const reasonInput = document.getElementById('overtime-reason');
+        
+        // 自動填入表單
+        if (dateInput) dateInput.value = date;
+        if (startTimeInput) startTimeInput.value = startTime;
+        if (endTimeInput) endTimeInput.value = endTime;
+        if (hoursInput) hoursInput.value = hours.toFixed(2);
+        
+        if (reasonInput) {
+            reasonInput.value = `系統偵測到超時工作 ${hours.toFixed(2)} 小時（已扣除午休時間），申請加班`;
+            
+            // 聚焦到原因欄位，方便員工補充說明
+            reasonInput.focus();
+            
+            // 將游標移到文字最後
+            reasonInput.setSelectionRange(reasonInput.value.length, reasonInput.value.length);
+        }
+        
+        // 滾動到表單頂部
+        const overtimeView = document.getElementById('overtime-view');
+        if (overtimeView) {
+            overtimeView.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+        
+        // 顯示提示
+        showNotification(
+            `已自動填入加班申請表單（${hours.toFixed(2)} 小時），請確認後提交`, 
+            'success'
+        );
+        
+    }, 300); // 延遲 300ms 確保頁面已切換
+}
