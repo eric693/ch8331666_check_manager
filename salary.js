@@ -1322,7 +1322,7 @@ async function loadAttendanceDetails(yearMonth) {
 }
 
 /**
- * ✅ 從薪資計算結果顯示工作時數
+ * ✅ 從薪資計算結果顯示工作時數（只顯示統計，不顯示明細）
  */
 function displayWorkHoursFromCalculation(data) {
     const detailsSection = document.getElementById('attendance-details-section');
@@ -1370,7 +1370,7 @@ function displayWorkHoursFromCalculation(data) {
 
 
 /**
- * ✅ 從薪資計算結果顯示加班統計
+ * ✅ 從薪資計算結果顯示加班統計（只顯示統計，不顯示明細）
  */
 function displayOvertimeFromCalculation(data) {
     const detailsSection = document.getElementById('attendance-details-section');
