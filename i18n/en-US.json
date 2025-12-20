@@ -698,6 +698,7 @@
 
   "ADJUST_REASON_LABEL": "Reason for Adjustment",
   "ADJUST_REASON_PLACEHOLDER": "Please describe the reason for the adjustment (e.g., forgot to check in, system error, etc.)",
-  "ADJUST_REASON_REQUIRED": "Please provide a reason for the adjustment"
+  "ADJUST_REASON_REQUIRED": "Please provide a reason for the adjustment",
 
+  "STATS_OVERTIME_HOURS": "Overtime Hours"
 }

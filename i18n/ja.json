@@ -679,6 +679,7 @@
 
   "ADJUST_REASON_LABEL": "修正理由",
   "ADJUST_REASON_PLACEHOLDER": "修正理由を記入してください（例：打刻忘れ、システム障害など）",
-  "ADJUST_REASON_REQUIRED": "修正理由を入力してください"
+  "ADJUST_REASON_REQUIRED": "修正理由を入力してください",
 
+  "STATS_OVERTIME_HOURS": "残業時間"
 }

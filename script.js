@@ -923,19 +923,16 @@ async function renderCalendar(date) {
 }
 
 /**
- * ✨ 更新本月出勤統計
- * @param {Array} records - 本月的出勤記錄
- */
-/**
- * ✅ 更新本月出勤統計（含加班時數）
+ * ✅ 更新本月出勤統計（含加班時數 - 完整版）
  */
 function updateMonthlyStats(records) {
     const totalHoursEl = document.getElementById('stats-total-hours-value');
     const workDaysEl = document.getElementById('stats-work-days-value');
     const abnormalCountEl = document.getElementById('stats-abnormal-count-value');
     const normalDaysEl = document.getElementById('stats-normal-days-value');
+    const overtimeHoursEl = document.getElementById('stats-overtime-hours-value'); // 👈 新增
     
-    if (!totalHoursEl || !workDaysEl || !abnormalCountEl || !normalDaysEl) {
+    if (!totalHoursEl || !workDaysEl || !abnormalCountEl || !normalDaysEl || !overtimeHoursEl) {
         console.warn('找不到統計元素');
         return;
     }
@@ -944,12 +941,14 @@ function updateMonthlyStats(records) {
     let workDays = 0;
     let abnormalCount = 0;
     let normalDays = 0;
-    let totalOvertimeHours = 0;
+    let totalOvertimeHours = 0; // 👈 新增
     
     records.forEach(record => {
-        // 計算工時
+        // 👇 計算打卡工時
         const punchIn = record.record ? record.record.find(r => r.type === '上班') : null;
         const punchOut = record.record ? record.record.find(r => r.type === '下班') : null;
+        
+        let overtimeFromPunch = 0; // 從打卡記錄計算的加班
         
         if (punchIn && punchOut) {
             try {
@@ -966,16 +965,28 @@ function updateMonthlyStats(records) {
                     totalHours += netHours;
                     workDays++;
                     
-                    // 計算加班時數
-                    const overtimeForDay = Math.max(0, netHours - 8);
-                    totalOvertimeHours += overtimeForDay;
+                    // 計算從打卡記錄自動偵測的加班時數
+                    overtimeFromPunch = Math.max(0, netHours - 8);
                     
-                    console.log(`${record.date}: 總時長=${totalHoursRaw.toFixed(2)}h, 淨工時=${netHours.toFixed(2)}h, 加班=${overtimeForDay.toFixed(2)}h`);
+                    console.log(`${record.date}: 總時長=${totalHoursRaw.toFixed(2)}h, 淨工時=${netHours.toFixed(2)}h, 自動加班=${overtimeFromPunch.toFixed(2)}h`);
                 }
             } catch (e) {
                 console.error('計算工時失敗:', e);
             }
         }
+        
+        // ⭐⭐⭐ 新增：檢查手動申請的加班（已核准）
+        let overtimeFromApplication = 0;
+        if (record.overtime && record.overtime.status === 'APPROVED') {
+            overtimeFromApplication = parseFloat(record.overtime.hours) || 0;
+            console.log(`${record.date}: 核准加班=${overtimeFromApplication.toFixed(2)}h`);
+        }
+        
+        // ⭐⭐⭐ 取兩者較大值（避免重複計算）
+        const dayOvertimeHours = Math.max(overtimeFromPunch, overtimeFromApplication);
+        totalOvertimeHours += dayOvertimeHours;
+        
+        console.log(`${record.date}: 最終加班=${dayOvertimeHours.toFixed(2)}h (打卡=${overtimeFromPunch.toFixed(2)}h, 申請=${overtimeFromApplication.toFixed(2)}h)`);
         
         // 判斷是否為異常記錄
         const abnormalReasons = [
@@ -997,6 +1008,7 @@ function updateMonthlyStats(records) {
     workDaysEl.textContent = workDays;
     abnormalCountEl.textContent = abnormalCount;
     normalDaysEl.textContent = normalDays;
+    overtimeHoursEl.textContent = totalOvertimeHours > 0 ? totalOvertimeHours.toFixed(1) : '0'; // 👈 新增
     
     // 顯示加班時數統計
     console.log(`📊 本月統計：總工時 ${totalHours.toFixed(1)}h，加班 ${totalOvertimeHours.toFixed(1)}h`);
