@@ -1230,6 +1230,9 @@ async function loadAttendanceDetails(yearMonth) {
             detailsSection.style.display = 'none';
             return;
         }
+        console.log('📊 完整薪資資料:', res.data);
+        console.log('📊 所有欄位名稱:', Object.keys(res.data));
+        console.log('📊 薪資類型欄位值:', res.data['薪資類型']);
         
         // ⭐⭐⭐ 關鍵：從後端回傳的資料判斷是否為時薪
         const salaryType = res.data['薪資類型'] || '月薪';
