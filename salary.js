@@ -92,6 +92,7 @@ async function loadCurrentEmployeeSalary() {
             console.log('✅ 成功載入薪資資料');
             displayEmployeeSalary(result.data);
             if (contentEl) contentEl.style.display = 'block';
+            await loadAttendanceDetails(currentMonth);
         } else {
             console.log(`⚠️ 沒有 ${currentMonth} 的薪資記錄`);
             if (emptyEl) {
@@ -147,10 +148,13 @@ async function loadEmployeeSalaryByMonth() {
             console.log(`✅ 找到 ${yearMonth} 的薪資記錄`);
             displayEmployeeSalary(res.data);
             contentEl.style.display = 'block';
+            await loadAttendanceDetails(yearMonth);
         } else {
             console.log(`⚠️ 沒有 ${yearMonth} 的薪資記錄`);
             showNoSalaryMessage(yearMonth);
             emptyEl.style.display = 'block';
+            const detailsSection = document.getElementById('attendance-details-section');
+            if (detailsSection) detailsSection.style.display = 'none';
         }
         
     } catch (error) {
@@ -948,6 +952,152 @@ function getBankName(code) {
     };
     
     return banks[code] || "未知銀行";
+}
+
+/**
+ * ✅ 載入出勤明細（打卡 + 加班）
+ */
+async function loadAttendanceDetails(yearMonth) {
+    try {
+        console.log(`📋 載入 ${yearMonth} 出勤明細`);
+        
+        const detailsSection = document.getElementById('attendance-details-section');
+        if (!detailsSection) return;
+        
+        // 顯示出勤明細區塊
+        detailsSection.style.display = 'block';
+        
+        // 載入打卡記錄
+        await loadPunchRecords(yearMonth);
+        
+        // 載入加班記錄
+        await loadOvertimeRecords(yearMonth);
+        
+    } catch (error) {
+        console.error('❌ 載入出勤明細失敗:', error);
+    }
+}
+
+/**
+ * ✅ 載入打卡記錄
+ */
+async function loadPunchRecords(yearMonth) {
+    const loadingEl = document.getElementById('punch-records-loading');
+    const emptyEl = document.getElementById('punch-records-empty');
+    const listEl = document.getElementById('punch-records-list');
+    const totalEl = document.getElementById('total-work-hours');
+    
+    if (!loadingEl || !emptyEl || !listEl) return;
+    
+    try {
+        loadingEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+        listEl.innerHTML = '';
+        
+        // 呼叫後端 API 取得打卡記錄
+        const res = await callApifetch(`getEmployeeMonthlyAttendance&yearMonth=${yearMonth}`);
+        
+        loadingEl.style.display = 'none';
+        
+        if (res.ok && res.records && res.records.length > 0) {
+            let totalHours = 0;
+            
+            res.records.forEach(record => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-2 bg-white/5 rounded';
+                
+                const workHours = record.workHours || 0;
+                totalHours += workHours;
+                
+                item.innerHTML = `
+                    <div>
+                        <span class="font-semibold">${record.date}</span>
+                        <span class="text-sm text-gray-400 ml-2">
+                            ${record.punchIn || '--'} ~ ${record.punchOut || '--'}
+                        </span>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-mono text-blue-400">${workHours.toFixed(1)}h</span>
+                    </div>
+                `;
+                
+                listEl.appendChild(item);
+            });
+            
+            if (totalEl) {
+                totalEl.textContent = `${totalHours.toFixed(1)} 小時`;
+            }
+            
+        } else {
+            emptyEl.style.display = 'block';
+            if (totalEl) totalEl.textContent = '0.0 小時';
+        }
+        
+    } catch (error) {
+        console.error('❌ 載入打卡記錄失敗:', error);
+        loadingEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+    }
+}
+
+/**
+ * ✅ 載入加班記錄
+ */
+async function loadOvertimeRecords(yearMonth) {
+    const loadingEl = document.getElementById('overtime-records-loading');
+    const emptyEl = document.getElementById('overtime-records-empty');
+    const listEl = document.getElementById('overtime-records-list');
+    const totalEl = document.getElementById('total-overtime-hours');
+    
+    if (!loadingEl || !emptyEl || !listEl) return;
+    
+    try {
+        loadingEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+        listEl.innerHTML = '';
+        
+        // 呼叫後端 API 取得加班記錄
+        const res = await callApifetch(`getEmployeeMonthlyOvertime&yearMonth=${yearMonth}`);
+        
+        loadingEl.style.display = 'none';
+        
+        if (res.ok && res.records && res.records.length > 0) {
+            let totalHours = 0;
+            
+            res.records.forEach(record => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-2 bg-white/5 rounded';
+                
+                const hours = record.hours || 0;
+                totalHours += hours;
+                
+                item.innerHTML = `
+                    <div>
+                        <span class="font-semibold">${record.date}</span>
+                        <span class="text-sm text-gray-400 ml-2">已核准</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-mono text-orange-400">${hours.toFixed(1)}h</span>
+                    </div>
+                `;
+                
+                listEl.appendChild(item);
+            });
+            
+            if (totalEl) {
+                totalEl.textContent = `${totalHours.toFixed(1)} 小時`;
+            }
+            
+        } else {
+            emptyEl.style.display = 'block';
+            if (totalEl) totalEl.textContent = '0.0 小時';
+        }
+        
+    } catch (error) {
+        console.error('❌ 載入加班記錄失敗:', error);
+        loadingEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+    }
 }
 
 console.log('✅ 薪資管理系統（完整版 v2.0）JS 已載入');
