@@ -2049,7 +2049,8 @@
                     
                     if (idNumberEl) idNumberEl.value = data.idNumber || '';
                     if (employeeTypeEl) employeeTypeEl.value = data.employeeType || '正職';
-                    if (salaryTypeEl) salaryTypeEl.value = data.salaryType || '月薪';
+                    // if (salaryTypeEl) salaryTypeEl.value = data.salaryType || '月薪';
+                    if (salaryTypeEl && data.salaryType) salaryTypeEl.value = data.salaryType;
                     if (baseSalaryEl) baseSalaryEl.value = data.baseSalary || '';
                     
                     // 津貼
