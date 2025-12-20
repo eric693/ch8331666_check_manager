@@ -555,85 +555,7 @@ function showLoginUI() {
     document.getElementById('main-app').style.display = 'none';
     document.getElementById("status").textContent = t("SUBTITLE_LOGIN");
 }
-/**
- * ⭐ 確保登入（優化版 - 使用合併 API）
- */
-// async function ensureLogin() {
-//     return new Promise(async (resolve) => {
-//         if (localStorage.getItem("sessionToken")) {
-//             document.getElementById("status").textContent = t("CHECKING_LOGIN");
-            
-//             try {
-//                 // ⭐⭐⭐ 關鍵修改：改用合併的 initApp API
-//                 const res = await callApifetch("initApp");
-                
-//                 if (res.ok) {
-//                     console.log('✅ initApp 成功', res);
-    
-//                     // 檢查是否為管理員
-//                     if (res.user.dept === "管理員") {
-//                         console.log('👑 管理員身份:', res.user.dept);
-//                         document.getElementById('tab-admin-btn').style.display = 'block';
-//                     }
-                    
-//                     // 設定使用者資訊
-//                     document.getElementById("user-name").textContent = res.user.name;
-//                     document.getElementById("profile-img").src = res.user.picture || res.user.rate;
-                    
-//                     // 儲存使用者 ID
-//                     localStorage.setItem("sessionUserId", res.user.userId);
-                    
-//                     // 顯示成功訊息
-//                     showNotification(t("LOGIN_SUCCESS"));
-                    
-//                     // 切換介面
-//                     document.getElementById('login-section').style.display = 'none';
-//                     document.getElementById('user-header').style.display = 'flex';
-//                     document.getElementById('main-app').style.display = 'block';
-                    
-//                     // ⭐⭐⭐ 直接渲染異常記錄，不需要再呼叫 checkAbnormal()
-//                     renderAbnormalRecords(res.abnormalRecords);
-                    
-//                     resolve(true);
-                    
-//                 } else {
-//                     // 登入失敗
-//                     console.error('❌ initApp 失敗:', res);
-                    
-//                     const errorMsg = t(res.code || "UNKNOWN_ERROR");
-//                     showNotification(`❌ ${errorMsg}`, "error");
-                    
-//                     document.getElementById("status").textContent = t("PLEASE_RELOGIN");
-//                     document.getElementById('login-btn').style.display = 'block';
-//                     document.getElementById('user-header').style.display = 'none';
-//                     document.getElementById('main-app').style.display = 'none';
-                    
-//                     resolve(false);
-//                 }
-                
-//             } catch (err) {
-//                 console.error('❌ ensureLogin 錯誤:', err);
-                
-//                 document.getElementById('login-btn').style.display = 'block';
-//                 document.getElementById('user-header').style.display = 'none';
-//                 document.getElementById('main-app').style.display = 'none';
-//                 document.getElementById("status").textContent = t("PLEASE_RELOGIN");
-                
-//                 resolve(false);
-//             }
-            
-//         } else {
-//             // 未登入
-//             document.getElementById('login-btn').style.display = 'block';
-//             document.getElementById('user-header').style.display = 'none';
-//             document.getElementById('main-app').style.display = 'none';
-//             document.getElementById("status").textContent = t("SUBTITLE_LOGIN");
-            
-//             resolve(false);
-//         }
-//     });
-// }
-// script.js - 在 checkAbnormal 函數附近加入
+
 /**
  * ⭐ 渲染異常記錄（從 initApp 返回的資料）
  */
@@ -2307,15 +2229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 showNotification(t("ERROR_LOGIN_FAILED", { msg: res.msg || t("UNKNOWN_ERROR") }), "error");
                 loginBtn.style.display = 'block';
             }
-            // if (res.ok && res.sToken) {
-            //     localStorage.setItem("sessionToken", res.sToken);
-            //     history.replaceState({}, '', window.location.pathname);
-            //     ensureLogin();
-            //     initBiometricPunch();
-            // } else {
-            //     showNotification(t("ERROR_LOGIN_FAILED", { msg: res.msg || t("UNKNOWN_ERROR") }), "error");
-            //     loginBtn.style.display = 'block';
-            // }
+
         } catch (err) {
             console.error(err);
             loginBtn.style.display = 'block';
@@ -2956,15 +2870,6 @@ function formatShiftDate(dateString) {
     
     return `${month}/${day} (${weekday})`;
 }
-// function formatShiftDate(dateString) {
-//     const date = new Date(dateString);
-//     const month = date.getMonth() + 1;
-//     const day = date.getDate();
-//     const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-//     const weekday = weekdays[date.getDay()];
-    
-//     return `${month}/${day} (${weekday})`;
-// }
 
 /**
  * 清除排班快取（當有更新時使用）
