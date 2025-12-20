@@ -1242,6 +1242,11 @@ async function renderDailyRecords(dateKey) {
                 const li = document.createElement('li');
                 li.className = 'p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-3';
                 
+                let workHoursDecimal = 0;
+                let overtimeHours = 0;
+                let hasOvertime = false;
+                let punchInRecord = null;
+                let punchOutRecord = null;
                 // 📋 標題區塊
                 const titleHtml = `
                     <div class="flex items-center justify-between mb-3 pb-2 border-b-2 border-gray-300 dark:border-gray-600">
