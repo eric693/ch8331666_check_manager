@@ -2001,7 +2001,7 @@
                     const salaryTypeEl = document.getElementById('config-salary-type');
                     const baseSalaryEl = document.getElementById('config-base-salary');
                     
-                    if (idNumberEl) idNumberEl.value = data.idNumber || '';
+                    if (idNumberEl) idNumberEl.value = data['身分證字號'] || '';
                     if (employeeTypeEl) employeeTypeEl.value = data.employeeType || '正職';
                     // if (salaryTypeEl) salaryTypeEl.value = data.salaryType || '月薪';
                     if (salaryTypeEl && data.salaryType) salaryTypeEl.value = data.salaryType;
