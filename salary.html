@@ -1380,23 +1380,51 @@
             safeSet('detail-bank-account', bankAccount || '--');
         }
 
+        // function showTab(tabId) {
+        //     document.querySelectorAll('.tab-content').forEach(tab => {
+        //         tab.classList.remove('active');
+        //     });
+
+        //     document.querySelectorAll('.tab-btn').forEach(btn => {
+        //         btn.classList.remove('active');
+        //     });
+
+        //     const selectedTab = document.getElementById(tabId);
+        //     if (selectedTab) {
+        //         selectedTab.classList.add('active');
+        //     }
+
+        //     event.target.classList.add('active');
+        // }
         function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
+        console.log('🔄 切換 tab:', tabId);
+        
+        // 1️⃣ 隱藏所有 tab 內容
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
 
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+        // 2️⃣ 移除所有按鈕的 active 狀態
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
 
-            const selectedTab = document.getElementById(tabId);
-            if (selectedTab) {
-                selectedTab.classList.add('active');
-            }
-
-            event.target.classList.add('active');
+        // 3️⃣ 顯示選中的 tab 內容
+        const selectedTab = document.getElementById(tabId);
+        if (selectedTab) {
+            selectedTab.classList.add('active');
+            console.log('✅ 顯示 tab:', tabId);
+        } else {
+            console.error('❌ 找不到 tab:', tabId);
         }
 
+        // 4️⃣ ⭐ 修正：使用 querySelector 找到點擊的按鈕
+        const clickedBtn = document.querySelector(`[onclick="showTab('${tabId}')"]`);
+        if (clickedBtn) {
+            clickedBtn.classList.add('active');
+            console.log('✅ 按鈕高亮成功');
+        }
+    }
         function goBack() {
             window.history.back();
         }
