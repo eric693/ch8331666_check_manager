@@ -4000,8 +4000,8 @@ function renderUsersList(users) {
                 <div class="flex-1">
                     <div class="flex items-center space-x-2">
                         <p class="font-bold text-gray-800 dark:text-white">${user.name}</p>
-                        ${isCurrentUser ? '<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">👤 您</span>' : ''}
-                        ${isAdmin ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">👑 管理員</span>' : '<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">👔 員工</span>'}
+                        ${isCurrentUser ? '<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">您</span>' : ''}
+                        ${isAdmin ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">管理員</span>' : '<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">員工</span>'}
                     </div>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         ${user.dept || '未設定部門'} ${user.rate ? `| ${user.rate}` : ''}
