@@ -3919,7 +3919,7 @@ function getTimeDifference(time1, time2) {
     return minutes1 - minutes2;
 }
 
-// ==================== 👥 用戶管理功能 ====================
+// ==================== 用戶管理用戶管理功能 ====================
 
 let allUsersCache = []; // 快取所有用戶
 
