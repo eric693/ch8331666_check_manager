@@ -1794,7 +1794,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const locationLatInput = document.getElementById('location-lat');
     const locationLngInput = document.getElementById('location-lng');
     const addLocationBtn = document.getElementById('add-location-btn');
-    
+    // 👇 新增：綁定用戶管理按鈕
+    const refreshUsersBtn = document.getElementById('refresh-users-btn');
+    if (refreshUsersBtn) {
+        refreshUsersBtn.addEventListener('click', loadAllUsers);
+    }
+
+    // 👇 新增：綁定搜尋功能
+    const searchUsersInput = document.getElementById('search-users-input');
+    if (searchUsersInput) {
+        searchUsersInput.addEventListener('input', (e) => {
+            filterUsersList(e.target.value);
+        });
+    }
     let pendingRequests = []; // 新增：用於快取待審核的請求
     
     // 全域變數，用於儲存地圖實例
@@ -2284,6 +2296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadPendingLeaveRequests();
             displayAdminAnnouncements();
             initAdminAnalysis();
+            loadAllUsers();
         } else if (tabId === 'overtime-view') {
             initOvertimeTab();
         } else if (tabId === 'leave-view') {
@@ -3904,4 +3917,237 @@ function getTimeDifference(time1, time2) {
     const minutes2 = h2 * 60 + m2;
     
     return minutes1 - minutes2;
+}
+
+// ==================== 👥 用戶管理功能 ====================
+
+let allUsersCache = []; // 快取所有用戶
+
+/**
+ * 載入所有用戶
+ */
+async function loadAllUsers() {
+    const loadingEl = document.getElementById('users-loading');
+    const emptyEl = document.getElementById('users-empty');
+    const listEl = document.getElementById('users-list');
+    const refreshBtn = document.getElementById('refresh-users-btn');
+    
+    try {
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (emptyEl) emptyEl.style.display = 'none';
+        if (listEl) listEl.innerHTML = '';
+        
+        // 按鈕進入處理中狀態
+        if (refreshBtn) {
+            generalButtonState(refreshBtn, 'processing', '載入中...');
+        }
+        
+        const res = await callApifetch('getAllUsers');
+        
+        if (loadingEl) loadingEl.style.display = 'none';
+        
+        if (res.ok && res.users && res.users.length > 0) {
+            allUsersCache = res.users;
+            renderUsersList(allUsersCache);
+            updateUsersStats(allUsersCache);
+        } else {
+            if (emptyEl) emptyEl.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('載入用戶失敗:', error);
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (emptyEl) emptyEl.style.display = 'block';
+        showNotification('載入失敗，請稍後再試', 'error');
+        
+    } finally {
+        // 恢復按鈕狀態
+        if (refreshBtn) {
+            generalButtonState(refreshBtn, 'idle');
+        }
+    }
+}
+
+/**
+ * 渲染用戶列表
+ */
+function renderUsersList(users) {
+    const listEl = document.getElementById('users-list');
+    if (!listEl) return;
+    
+    listEl.innerHTML = '';
+    
+    const currentUserId = localStorage.getItem('sessionUserId');
+    
+    users.forEach((user, index) => {
+        const isCurrentUser = user.userId === currentUserId;
+        const isAdmin = user.dept === '管理員';
+        
+        const div = document.createElement('div');
+        div.className = 'bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow';
+        div.dataset.userId = user.userId;
+        div.dataset.userName = user.name;
+        div.dataset.userDept = user.dept || '';
+        
+        div.innerHTML = `
+            <div class="flex items-center space-x-4 flex-1">
+                <!-- 頭像 -->
+                <img src="${user.picture || 'https://via.placeholder.com/48'}" 
+                     alt="${user.name}" 
+                     class="w-12 h-12 rounded-full border-2 ${isAdmin ? 'border-yellow-400' : 'border-gray-300'}">
+                
+                <!-- 用戶資訊 -->
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2">
+                        <p class="font-bold text-gray-800 dark:text-white">${user.name}</p>
+                        ${isCurrentUser ? '<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">👤 您</span>' : ''}
+                        ${isAdmin ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">👑 管理員</span>' : '<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">👔 員工</span>'}
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        ${user.dept || '未設定部門'} ${user.rate ? `| ${user.rate}` : ''}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 操作按鈕 -->
+            <div class="flex items-center space-x-2">
+                ${!isCurrentUser ? `
+                    ${isAdmin ? `
+                        <button onclick="changeUserRole('${user.userId}', '${user.name}', 'employee')"
+                                class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-md transition-colors">
+                            降級為員工
+                        </button>
+                    ` : `
+                        <button onclick="changeUserRole('${user.userId}', '${user.name}', 'admin')"
+                                class="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-sm font-semibold rounded-md transition-colors">
+                            升級為管理員
+                        </button>
+                    `}
+                    
+                    <button onclick="confirmDeleteUser('${user.userId}', '${user.name}')"
+                            class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-md transition-colors">
+                        刪除
+                    </button>
+                ` : `
+                    <span class="text-sm text-gray-500 dark:text-gray-400">無法操作自己</span>
+                `}
+            </div>
+        `;
+        
+        listEl.appendChild(div);
+    });
+}
+
+/**
+ * 更新統計數據
+ */
+function updateUsersStats(users) {
+    const totalEl = document.getElementById('total-users-count');
+    const adminEl = document.getElementById('admin-users-count');
+    const employeeEl = document.getElementById('employee-users-count');
+    
+    const adminCount = users.filter(u => u.dept === '管理員').length;
+    const employeeCount = users.length - adminCount;
+    
+    if (totalEl) totalEl.textContent = users.length;
+    if (adminEl) adminEl.textContent = adminCount;
+    if (employeeEl) employeeEl.textContent = employeeCount;
+}
+
+/**
+ * 搜尋用戶
+ */
+function filterUsersList(query) {
+    const lowerQuery = query.toLowerCase().trim();
+    
+    if (!lowerQuery) {
+        renderUsersList(allUsersCache);
+        return;
+    }
+    
+    const filtered = allUsersCache.filter(user => {
+        const name = (user.name || '').toLowerCase();
+        const dept = (user.dept || '').toLowerCase();
+        return name.includes(lowerQuery) || dept.includes(lowerQuery);
+    });
+    
+    renderUsersList(filtered);
+}
+
+/**
+ * 更改用戶角色
+ */
+async function changeUserRole(userId, userName, newRole) {
+    const roleText = newRole === 'admin' ? '管理員' : '員工';
+    
+    if (!confirm(`確定要將「${userName}」的角色改為「${roleText}」嗎？`)) {
+        return;
+    }
+    
+    try {
+        showNotification('處理中...', 'info');
+        
+        const res = await callApifetch(`updateUserRole&userId=${encodeURIComponent(userId)}&role=${newRole}`);
+        
+        if (res.ok) {
+            showNotification(`已成功將「${userName}」設為${roleText}`, 'success');
+            
+            // 重新載入列表
+            await loadAllUsers();
+            
+            // 如果改的是當前用戶，需要重新整理頁面
+            const currentUserId = localStorage.getItem('sessionUserId');
+            if (userId === currentUserId) {
+                showNotification('您的權限已變更，即將重新整理頁面...', 'warning');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+        } else {
+            showNotification(res.msg || '操作失敗', 'error');
+        }
+        
+    } catch (error) {
+        console.error('更改角色失敗:', error);
+        showNotification('操作失敗，請稍後再試', 'error');
+    }
+}
+
+/**
+ * 確認刪除用戶
+ */
+function confirmDeleteUser(userId, userName) {
+    if (!confirm(`⚠️ 警告：確定要刪除用戶「${userName}」嗎？\n\n此操作無法復原！`)) {
+        return;
+    }
+    
+    if (!confirm(`再次確認：真的要刪除「${userName}」嗎？`)) {
+        return;
+    }
+    
+    deleteUser(userId, userName);
+}
+
+/**
+ * 刪除用戶
+ */
+async function deleteUser(userId, userName) {
+    try {
+        showNotification('刪除中...', 'warning');
+        
+        const res = await callApifetch(`deleteUser&userId=${encodeURIComponent(userId)}`);
+        
+        if (res.ok) {
+            showNotification(`已成功刪除「${userName}」`, 'success');
+            
+            // 重新載入列表
+            await loadAllUsers();
+        } else {
+            showNotification(res.msg || '刪除失敗', 'error');
+        }
+        
+    } catch (error) {
+        console.error('刪除用戶失敗:', error);
+        showNotification('刪除失敗，請稍後再試', 'error');
+    }
 }
