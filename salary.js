@@ -1545,6 +1545,9 @@ async function loadOvertimeRecords(yearMonth) {
 
 // ==================== 薪資匯出功能（管理員專用） ====================
 
+/**
+ * ✅ 匯出所有員工薪資總表為 Excel（管理員專用）
+ */
 async function exportAllSalaryExcel() {
     try {
         console.log('🔍 開始匯出薪資總表');
@@ -1554,54 +1557,66 @@ async function exportAllSalaryExcel() {
         const yearMonth = yearMonthEl ? yearMonthEl.value : '';
         
         if (!yearMonth) {
-            showNotification('❌ 請先選擇要匯出的月份', 'error');
+            showNotification('請先選擇要匯出的月份', 'error');
             return;
         }
         
         const token = localStorage.getItem('sessionToken');
         if (!token) {
-            showNotification('❌ 請先登入', 'error');
+            showNotification('請先登入', 'error');
             return;
         }
         
-        // 構建 API URL
-        const apiUrl = `${API_CONFIG.apiUrl}?action=exportAllSalaryExcel&yearMonth=${encodeURIComponent(yearMonth)}&token=${encodeURIComponent(token)}`;
+        console.log('📤 準備匯出:', { yearMonth, token: token ? '存在' : '不存在' });
         
         // 顯示進度
         showExportProgress('正在生成薪資總表 Excel...');
         
-        // 呼叫 API
-        const response = await fetch(apiUrl);
-        const res = await response.json();
+        // ⭐⭐⭐ 修正：使用正確的 API URL 格式
+        const apiUrl = `${API_CONFIG.apiUrl}?action=exportAllSalaryExcel&token=${encodeURIComponent(token)}&yearMonth=${encodeURIComponent(yearMonth)}`;
         
-        console.log('📥 收到回應:', res);
+        console.log('🌐 API URL:', apiUrl);
+        
+        // 呼叫 API
+        const response = await fetch(apiUrl, {
+            method: 'GET'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        console.log('📥 收到回應:', result);
         
         hideExportProgress();
         
-        if (res.ok && res.data && res.data.fileUrl) {
-            // ⭐⭐⭐ 直接下載檔案
-            const link = document.createElement('a');
-            link.href = res.data.fileUrl;
-            link.download = res.data.fileName + '.xlsx';  // ⭐ 強制下載
-            link.style.display = 'none';
+        // ⭐⭐⭐ 修正：正確判斷成功
+        if (result.ok && result.fileUrl) {
+            // 成功：開啟下載連結
+            window.open(result.fileUrl, '_blank');
             
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            showNotification(
+                `✅ 匯出成功！\n檔案：${result.fileName || '薪資總表'}\n記錄數：${result.recordCount || 0}`,
+                'success'
+            );
             
-            showNotification(`✅ 薪資總表開始下載！\n檔案名稱：${res.data.fileName}.xlsx\n共 ${res.data.recordCount} 筆記錄`, 'success');
-            
-            // 📋 同時顯示結果區塊（備用）
-            displayExportResult(res.data);
+            // 顯示結果區塊（備用）
+            displayExportResult({
+                fileName: result.fileName,
+                fileUrl: result.fileUrl,
+                recordCount: result.recordCount
+            });
             
         } else {
-            showNotification('❌ 匯出失敗: ' + (res.msg || res.message || '未知錯誤'), 'error');
+            throw new Error(result.msg || result.message || '匯出失敗');
         }
         
     } catch (error) {
         hideExportProgress();
         console.error('❌ 匯出失敗:', error);
-        showNotification('❌ 匯出失敗：' + error.message, 'error');
+        showNotification('匯出失敗: ' + error.message, 'error');
     }
 }
 
