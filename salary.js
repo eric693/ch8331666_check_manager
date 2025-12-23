@@ -1576,8 +1576,8 @@ async function exportAllSalaryExcel() {
             return;
         }
         
-        // ⭐⭐⭐ 修改：直接使用 fetch，不用 callApifetch
-        const apiUrl = `${API_URL}?action=exportAllSalaryExcel&yearMonth=${encodeURIComponent(yearMonth)}&token=${encodeURIComponent(token)}`;
+        // ✅ 修正：使用 API_CONFIG.apiUrl
+        const apiUrl = `${API_CONFIG.apiUrl}?action=exportAllSalaryExcel&yearMonth=${encodeURIComponent(yearMonth)}&token=${encodeURIComponent(token)}`;
         console.log('🔗 完整 API URL:', apiUrl);
         
         // 顯示進度
