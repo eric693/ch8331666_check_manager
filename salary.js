@@ -1596,8 +1596,26 @@ async function exportAllSalaryExcel() {
         
         // 處理結果
         if (res.ok && res.fileUrl) {
-            window.open(res.fileUrl, '_blank');
-            showNotification(`✅ 薪資總表已生成！\n共 ${res.recordCount} 筆記錄`, 'success');
+            // ✅ 改用 <a> 標籤模擬點擊
+            const link = document.createElement('a');
+            link.href = res.fileUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            
+            // 觸發點擊
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification(`✅ 薪資總表已生成！\n共 ${res.recordCount} 筆記錄\n\n點擊通知可開啟檔案`, 'success');
+            
+            try {
+                await navigator.clipboard.writeText(res.fileUrl);
+                console.log('✅ 檔案連結已複製到剪貼簿');
+            } catch (e) {
+                console.log('⚠️ 無法複製連結:', e);
+            }
+            
         } else {
             showNotification('❌ 匯出失敗: ' + (res.msg || res.message || '未知錯誤'), 'error');
         }
