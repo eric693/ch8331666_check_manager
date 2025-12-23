@@ -1550,13 +1550,13 @@ async function loadOvertimeRecords(yearMonth) {
  */
 async function exportAllSalaryExcel() {
     try {
-        console.log('🔍 ========== DEBUG 开始 ==========');
+        console.log('🔍 ========== DEBUG 開始 ==========');
         
-        // 检查权限
+        // 檢查權限
         console.log('👤 currentUserRole:', currentUserRole);
         
         if (currentUserRole !== 'admin') {
-            showNotification('❌ 此功能仅限管理员使用', 'error');
+            showNotification('❌ 此功能僅限管理員使用', 'error');
             return;
         }
         
@@ -1566,40 +1566,40 @@ async function exportAllSalaryExcel() {
         console.log('📅 yearMonth:', yearMonth);
         
         if (!yearMonth) {
-            showNotification('❌ 请先选择要汇出的月份', 'error');
+            showNotification('❌ 請先選擇要匯出的月份', 'error');
             return;
         }
         
-        // 建构 API URL
+        // 建構 API URL
         const apiUrl = `action=exportAllSalaryExcel&yearMonth=${encodeURIComponent(yearMonth)}`;
         console.log('🔗 API URL:', apiUrl);
         
-        // 显示进度
-        showExportProgress('正在生成薪资总表 Excel...');
+        // 顯示進度
+        showExportProgress('正在生成薪資總表 Excel...');
         
-        // ⭐⭐⭐ 关键：记录完整请求
-        console.log('📤 准备发送请求...');
+        // ⭐⭐⭐ 關鍵：記錄完整請求
+        console.log('📤 準備發送請求...');
         console.log('   URL:', apiUrl);
         
         const res = await callApifetch(apiUrl);
         
-        console.log('📥 收到回应:', res);
-        console.log('🔍 ========== DEBUG 结束 ==========');
+        console.log('📥 收到回應:', res);
+        console.log('🔍 ========== DEBUG 結束 ==========');
         
         hideExportProgress();
         
-        // 处理结果
+        // 處理結果
         if (res.ok && res.fileUrl) {
             window.open(res.fileUrl, '_blank');
-            showNotification(`✅ 薪资总表已生成！\n共 ${res.recordCount} 笔记录`, 'success');
+            showNotification(`✅ 薪資總表已生成！\n共 ${res.recordCount} 筆記錄`, 'success');
         } else {
-            showNotification('❌ 汇出失败: ' + (res.msg || res.message || '未知错误'), 'error');
+            showNotification('❌ 匯出失敗: ' + (res.msg || res.message || '未知錯誤'), 'error');
         }
         
     } catch (error) {
         hideExportProgress();
-        console.error('❌ 汇出 Excel 失败:', error);
-        showNotification('❌ 汇出失败：' + error.message, 'error');
+        console.error('❌ 匯出 Excel 失敗:', error);
+        showNotification('❌ 匯出失敗：' + error.message, 'error');
     }
 }
 
