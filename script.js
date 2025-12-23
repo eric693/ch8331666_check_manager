@@ -3861,50 +3861,53 @@ function renderUsersList(users) {
         div.dataset.userId = user.userId;
         div.dataset.userName = user.name;
         div.dataset.userDept = user.dept || '';
-        
+
         div.innerHTML = `
-            <div class="flex items-center space-x-4 flex-1">
-                <!-- 頭像 -->
-                <img src="${user.picture || 'https://via.placeholder.com/48'}" 
-                     alt="${user.name}" 
-                     class="w-12 h-12 rounded-full border-2 ${isAdmin ? 'border-yellow-400' : 'border-gray-300'}">
-                
-                <!-- 用戶資訊 -->
-                <div class="flex-1">
-                    <div class="flex items-center space-x-2">
-                        <p class="font-bold text-gray-800 dark:text-white">${user.name}</p>
-                        ${isCurrentUser ? '<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">您</span>' : ''}
-                        ${isAdmin ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">管理員</span>' : '<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">員工</span>'}
-                    </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                        ${user.dept || '未設定部門'} ${user.rate ? `| ${user.rate}` : ''}
-                    </p>
-                </div>
-            </div>
+        <div class="flex items-start space-x-3">
+            <!-- 頭像 -->
+            <img src="${user.picture || 'https://via.placeholder.com/48'}" 
+                alt="${user.name}" 
+                class="w-12 h-12 flex-shrink-0 rounded-full border-2 ${isAdmin ? 'border-yellow-400' : 'border-gray-300'}">
             
-            <!-- 操作按鈕 -->
-            <div class="flex items-center space-x-2">
+            <!-- 用戶資訊與操作區 -->
+            <div class="flex-1 min-w-0">
+                <!-- 名稱與標籤 -->
+                <div class="flex flex-wrap items-center gap-1 mb-1">
+                    <p class="font-bold text-gray-800 dark:text-white truncate">${user.name}</p>
+                    ${isCurrentUser ? '<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full whitespace-nowrap">您</span>' : ''}
+                    ${isAdmin ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full whitespace-nowrap">管理員</span>' : '<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full whitespace-nowrap">員工</span>'}
+                </div>
+                
+                <!-- 部門資訊 -->
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-2 truncate">
+                    ${user.dept || '未設定部門'} ${user.rate ? `| ${user.rate}` : ''}
+                </p>
+                
+                <!-- 操作按鈕 -->
                 ${!isCurrentUser ? `
-                    ${isAdmin ? `
-                        <button onclick="changeUserRole('${user.userId}', '${user.name}', 'employee')"
-                                class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-md transition-colors">
-                            降級為員工
+                    <div class="flex flex-wrap gap-2">
+                        ${isAdmin ? `
+                            <button onclick="changeUserRole('${user.userId}', '${user.name}', 'employee')"
+                                    class="flex-1 min-w-[120px] px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-md transition-colors">
+                                降級為員工
+                            </button>
+                        ` : `
+                            <button onclick="changeUserRole('${user.userId}', '${user.name}', 'admin')"
+                                    class="flex-1 min-w-[120px] px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs font-semibold rounded-md transition-colors">
+                                升級為管理員
+                            </button>
+                        `}
+                        
+                        <button onclick="confirmDeleteUser('${user.userId}', '${user.name}')"
+                                class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-md transition-colors">
+                            刪除
                         </button>
-                    ` : `
-                        <button onclick="changeUserRole('${user.userId}', '${user.name}', 'admin')"
-                                class="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-sm font-semibold rounded-md transition-colors">
-                            升級為管理員
-                        </button>
-                    `}
-                    
-                    <button onclick="confirmDeleteUser('${user.userId}', '${user.name}')"
-                            class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-md transition-colors">
-                        刪除
-                    </button>
+                    </div>
                 ` : `
-                    <span class="text-sm text-gray-500 dark:text-gray-400">無法操作自己</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">無法操作自己</span>
                 `}
             </div>
+        </div>
         `;
         
         listEl.appendChild(div);
