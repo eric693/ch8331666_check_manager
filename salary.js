@@ -525,6 +525,12 @@ function displayEmployeeSalary(data) {
     safeSet('detail-transport-allowance', formatCurrency(data['交通補助'] || 0));
     safeSet('detail-attendance-bonus', formatCurrency(data['全勤獎金'] || 0));
     safeSet('detail-performance-bonus', formatCurrency(data['績效獎金'] || 0));
+
+    // ⭐⭐⭐ 新增：3 個津貼
+    safeSet('detail-professional-allowance', formatCurrency(data['專業加給'] || 0));
+    safeSet('detail-managerial-allowance', formatCurrency(data['主管加給'] || 0));
+    safeSet('detail-duty-allowance', formatCurrency(data['值班津貼'] || 0));
+
     safeSet('detail-weekday-overtime', formatCurrency(data['平日加班費']));
     safeSet('detail-restday-overtime', formatCurrency(data['休息日加班費']));
     safeSet('detail-holiday-overtime', formatCurrency(data['國定假日加班費']));
@@ -545,6 +551,8 @@ function displayEmployeeSalary(data) {
         (parseFloat(data['福利金扣款']) || 0) +
         (parseFloat(data['宿舍費用']) || 0) +
         (parseFloat(data['團保費用']) || 0) +
+        (parseFloat(data['員工活動費']) || 0) +    // ⭐ 新增
+        (parseFloat(data['工會費']) || 0) +        // ⭐ 新增
         (parseFloat(data['其他扣款']) || 0);
     safeSet('detail-other-deductions', formatCurrency(otherDeductions));
     
@@ -703,7 +711,11 @@ async function handleSalaryConfigSubmit(e) {
     const transportAllowance = safeGetValue('config-transport-allowance') || '0';
     const attendanceBonus = safeGetValue('config-attendance-bonus') || '0';
     const performanceBonus = safeGetValue('config-performance-bonus') || '0';
+    const professionalAllowance = safeGetValue('config-professional-allowance') || '0';  // ⭐ 新增
+    const managerialAllowance = safeGetValue('config-managerial-allowance') || '0';      // ⭐ 新增
+    const dutyAllowance = safeGetValue('config-duty-allowance') || '0';                  // ⭐ 新增
     const otherAllowances = safeGetValue('config-other-allowances') || '0';
+    
     
     // 法定扣款
     const laborFee = safeGetValue('config-labor-fee') || '0';
@@ -717,7 +729,10 @@ async function handleSalaryConfigSubmit(e) {
     const welfareFee = safeGetValue('config-welfare-fee') || '0';
     const dormitoryFee = safeGetValue('config-dormitory-fee') || '0';
     const groupInsurance = safeGetValue('config-group-insurance') || '0';
+    const activityFee = safeGetValue('config-activity-fee') || '0';                      // ⭐ 新增
+    const unionFee = safeGetValue('config-union-fee') || '0';                            // ⭐ 新增
     const otherDeductions = safeGetValue('config-other-deductions') || '0';
+    
     
     // 其他資訊
     const bankCodeRaw = document.getElementById('config-bank-code').value;
@@ -758,7 +773,11 @@ async function handleSalaryConfigSubmit(e) {
             `&transportAllowance=${encodeURIComponent(transportAllowance)}` +
             `&attendanceBonus=${encodeURIComponent(attendanceBonus)}` +
             `&performanceBonus=${encodeURIComponent(performanceBonus)}` +
+            `&professionalAllowance=${encodeURIComponent(professionalAllowance)}` +  // ⭐ 新增
+            `&managerialAllowance=${encodeURIComponent(managerialAllowance)}` +      // ⭐ 新增
+            `&dutyAllowance=${encodeURIComponent(dutyAllowance)}` +                  // ⭐ 新增
             `&otherAllowances=${encodeURIComponent(otherAllowances)}` +
+            
             
             // 銀行資訊 (4個參數)
             `&bankCode=${encodeURIComponent(bankCode)}` +
@@ -778,7 +797,10 @@ async function handleSalaryConfigSubmit(e) {
             `&welfareFee=${encodeURIComponent(welfareFee)}` +
             `&dormitoryFee=${encodeURIComponent(dormitoryFee)}` +
             `&groupInsurance=${encodeURIComponent(groupInsurance)}` +
+            `&activityFee=${encodeURIComponent(activityFee)}` +                      // ⭐ 新增
+            `&unionFee=${encodeURIComponent(unionFee)}` +                            // ⭐ 新增
             `&otherDeductions=${encodeURIComponent(otherDeductions)}` +
+            
             
             // 備註
             `&note=${encodeURIComponent(note)}`;
@@ -798,10 +820,15 @@ async function handleSalaryConfigSubmit(e) {
                 'config-transport-allowance',
                 'config-attendance-bonus',
                 'config-performance-bonus',
+                'config-professional-allowance',    // ⭐ 新增
+                'config-managerial-allowance',      // ⭐ 新增
+                'config-duty-allowance',            // ⭐ 新增
                 'config-other-allowances',
                 'config-welfare-fee',
                 'config-dormitory-fee',
                 'config-group-insurance',
+                'config-activity-fee',              // ⭐ 新增
+                'config-union-fee',                 // ⭐ 新增
                 'config-other-deductions',
                 'config-labor-fee',
                 'config-health-fee',
@@ -888,6 +915,8 @@ function displaySalaryCalculation(data, container) {
         (parseFloat(data.welfareFee) || 0) +
         (parseFloat(data.dormitoryFee) || 0) +
         (parseFloat(data.groupInsurance) || 0) +
+        (parseFloat(data.activityFee) || 0) +      // ⭐ 新增
+        (parseFloat(data.unionFee) || 0) +         // ⭐ 新增
         (parseFloat(data.otherDeductions) || 0);
     
     // ⭐ 判斷是月薪還是時薪
@@ -1020,6 +1049,19 @@ function displaySalaryCalculation(data, container) {
                         <span>績效獎金</span>
                         <span class="font-mono">${formatCurrency(data.performanceBonus || 0)}</span>
                     </div>
+                    <!-- ⭐⭐⭐ 新增：3 個津貼 -->
+                    <div class="calculation-row">
+                        <span>專業加給</span>
+                        <span class="font-mono">${formatCurrency(data.professionalAllowance || 0)}</span>
+                    </div>
+                    <div class="calculation-row">
+                        <span>主管加給</span>
+                        <span class="font-mono">${formatCurrency(data.managerialAllowance || 0)}</span>
+                    </div>
+                    <div class="calculation-row">
+                        <span>值班津貼</span>
+                        <span class="font-mono">${formatCurrency(data.dutyAllowance || 0)}</span>
+                    </div>
                     <div class="calculation-row">
                         <span>前2小時加班費 (×1.34)</span>
                         <span class="font-mono">${formatCurrency(data.weekdayOvertimePay || 0)}</span>
@@ -1073,6 +1115,14 @@ function displaySalaryCalculation(data, container) {
                     <div class="calculation-row">
                         <span>團保費用</span>
                         <span class="font-mono">${formatCurrency(data.groupInsurance || 0)}</span>
+                    </div>
+                    <div class="calculation-row">
+                        <span>員工活動費</span>
+                        <span class="font-mono">${formatCurrency(data.activityFee || 0)}</span>
+                    </div>
+                    <div class="calculation-row">
+                        <span>工會費</span>
+                        <span class="font-mono">${formatCurrency(data.unionFee || 0)}</span>
                     </div>
                     <div class="calculation-row">
                         <span>其他扣款</span>
