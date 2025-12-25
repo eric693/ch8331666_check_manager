@@ -2112,7 +2112,7 @@
         /**
          * ⭐ 載入員工現有薪資設定（可選功能）
          */
-        async function loadExistingSalaryConfig(employeeId) {
+         async function loadExistingSalaryConfig(employeeId) {
             try {
                 console.log(`📥 檢查員工 ${employeeId} 的現有薪資設定...`);
                 
@@ -2121,7 +2121,6 @@
                 if (res.ok && res.data) {
                     console.log('✅ 找到現有薪資設定，自動填入表單');
                     
-                    // 自動填入現有設定
                     const data = res.data;
                     
                     // 基本資訊
@@ -2131,63 +2130,62 @@
                     const baseSalaryEl = document.getElementById('config-base-salary');
                     
                     if (idNumberEl) idNumberEl.value = data['身分證字號'] || '';
-                    if (employeeTypeEl) employeeTypeEl.value = data.employeeType || '正職';
-                    // if (salaryTypeEl) salaryTypeEl.value = data.salaryType || '月薪';
-                    if (salaryTypeEl && data.salaryType) salaryTypeEl.value = data.salaryType;
-                    if (baseSalaryEl) baseSalaryEl.value = data.baseSalary || '';
+                    if (employeeTypeEl) employeeTypeEl.value = data['員工類型'] || '正職';
+                    if (salaryTypeEl) salaryTypeEl.value = data['薪資類型'] || '月薪';
+                    if (baseSalaryEl) baseSalaryEl.value = data['基本薪資'] || '';
                     
-                    // 津貼
+                    // ⭐⭐⭐ 修正：使用中文欄位名稱
                     const positionAllowanceEl = document.getElementById('config-position-allowance');
                     const mealAllowanceEl = document.getElementById('config-meal-allowance');
                     const transportAllowanceEl = document.getElementById('config-transport-allowance');
                     const attendanceBonusEl = document.getElementById('config-attendance-bonus');
                     const performanceBonusEl = document.getElementById('config-performance-bonus');
-                    const otherAllowancesEl = document.getElementById('config-other-allowances');
                     const professionalAllowanceEl = document.getElementById('config-professional-allowance');
                     const managerialAllowanceEl = document.getElementById('config-managerial-allowance');
                     const dutyAllowanceEl = document.getElementById('config-duty-allowance');
+                    const otherAllowancesEl = document.getElementById('config-other-allowances');
                     
-                    if (professionalAllowanceEl) professionalAllowanceEl.value = data.professionalAllowance || 0;
-                    if (managerialAllowanceEl) managerialAllowanceEl.value = data.managerialAllowance || 0;
-                    if (dutyAllowanceEl) dutyAllowanceEl.value = data.dutyAllowance || 0;
-                    if (positionAllowanceEl) positionAllowanceEl.value = data.positionAllowance || 0;
-                    if (mealAllowanceEl) mealAllowanceEl.value = data.mealAllowance || 0;
-                    if (transportAllowanceEl) transportAllowanceEl.value = data.transportAllowance || 0;
-                    if (attendanceBonusEl) attendanceBonusEl.value = data.attendanceBonus || 0;
-                    if (performanceBonusEl) performanceBonusEl.value = data.performanceBonus || 0;
-                    if (otherAllowancesEl) otherAllowancesEl.value = data.otherAllowances || 0;
+                    if (positionAllowanceEl) positionAllowanceEl.value = data['職務加給'] || 0;
+                    if (mealAllowanceEl) mealAllowanceEl.value = data['伙食費'] || 0;
+                    if (transportAllowanceEl) transportAllowanceEl.value = data['交通補助'] || 0;
+                    if (attendanceBonusEl) attendanceBonusEl.value = data['全勤獎金'] || 0;
+                    if (performanceBonusEl) performanceBonusEl.value = data['績效獎金'] || 0;
+                    if (professionalAllowanceEl) professionalAllowanceEl.value = data['專業加給'] || 0;  // ✅ 改用中文
+                    if (managerialAllowanceEl) managerialAllowanceEl.value = data['主管加給'] || 0;      // ✅ 改用中文
+                    if (dutyAllowanceEl) dutyAllowanceEl.value = data['值班津貼'] || 0;                  // ✅ 改用中文
+                    if (otherAllowancesEl) otherAllowancesEl.value = data['其他津貼'] || 0;
                     
                     // 銀行資訊
                     const bankCodeEl = document.getElementById('config-bank-code');
                     const bankAccountEl = document.getElementById('config-bank-account');
                     const hireDateEl = document.getElementById('config-hire-date');
                     const paymentDayEl = document.getElementById('config-payment-day');
-                    // ⭐⭐⭐ 新增：2 個扣款
-                    const activityFeeEl = document.getElementById('config-activity-fee');
-                    const unionFeeEl = document.getElementById('config-union-fee');
                     
-                    if (activityFeeEl) activityFeeEl.value = data.activityFee || 0;
-                    if (unionFeeEl) unionFeeEl.value = data.unionFee || 0;
-                    if (bankCodeEl) bankCodeEl.value = data.bankCode || '';
-                    if (bankAccountEl) bankAccountEl.value = data.bankAccount || '';
-                    if (paymentDayEl) paymentDayEl.value = data.paymentDay || '5';
+                    if (bankCodeEl) bankCodeEl.value = data['銀行代碼'] || '';
+                    if (bankAccountEl) bankAccountEl.value = data['銀行帳號'] || '';
+                    if (hireDateEl) hireDateEl.value = data['到職日期'] || '';
+                    if (paymentDayEl) paymentDayEl.value = data['發薪日'] || '5';
                     
-                    // 扣款
+                    // ⭐⭐⭐ 修正：使用中文欄位名稱
                     const pensionRateEl = document.getElementById('config-pension-rate');
                     const welfareFeeEl = document.getElementById('config-welfare-fee');
                     const dormitoryFeeEl = document.getElementById('config-dormitory-fee');
                     const groupInsuranceEl = document.getElementById('config-group-insurance');
+                    const activityFeeEl = document.getElementById('config-activity-fee');
+                    const unionFeeEl = document.getElementById('config-union-fee');
                     const otherDeductionsEl = document.getElementById('config-other-deductions');
                     
-                    if (pensionRateEl) pensionRateEl.value = data.pensionSelfRate || 0;
-                    if (welfareFeeEl) welfareFeeEl.value = data.welfareFee || 0;
-                    if (dormitoryFeeEl) dormitoryFeeEl.value = data.dormitoryFee || 0;
-                    if (groupInsuranceEl) groupInsuranceEl.value = data.groupInsurance || 0;
-                    if (otherDeductionsEl) otherDeductionsEl.value = data.otherDeductions || 0;
+                    if (pensionRateEl) pensionRateEl.value = data['勞退自提率(%)'] || 0;
+                    if (welfareFeeEl) welfareFeeEl.value = data['福利金扣款'] || 0;
+                    if (dormitoryFeeEl) dormitoryFeeEl.value = data['宿舍費用'] || 0;
+                    if (groupInsuranceEl) groupInsuranceEl.value = data['團保費用'] || 0;
+                    if (activityFeeEl) activityFeeEl.value = data['員工活動費'] || 0;      // ✅ 改用中文
+                    if (unionFeeEl) unionFeeEl.value = data['工會費'] || 0;                // ✅ 改用中文
+                    if (otherDeductionsEl) otherDeductionsEl.value = data['其他扣款'] || 0;
                     
                     // 備註
                     const noteEl = document.getElementById('config-note');
-                    if (noteEl) noteEl.value = data.note || '';
+                    if (noteEl) noteEl.value = data['備註'] || '';
                     
                     // 觸發自動計算
                     autoCalculateDeductions();
