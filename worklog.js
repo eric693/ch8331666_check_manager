@@ -17,14 +17,12 @@ function setupWorklogForm() {
     const contentInput = document.getElementById('worklog-content');
     const submitBtn = document.getElementById('submit-worklog-btn');
     
-    // 設定預設日期為今天
     if (dateInput) {
         const today = new Date().toISOString().split('T')[0];
         dateInput.value = today;
-        dateInput.max = today; // 不允許選擇未來日期
+        dateInput.max = today;
     }
     
-    // 工時輸入驗證
     if (hoursInput) {
         hoursInput.addEventListener('input', (e) => {
             const value = parseFloat(e.target.value);
@@ -33,7 +31,6 @@ function setupWorklogForm() {
         });
     }
     
-    // 提交按鈕
     if (submitBtn) {
         submitBtn.addEventListener('click', submitWorklog);
     }
@@ -52,7 +49,6 @@ async function submitWorklog() {
     const hours = parseFloat(hoursInput?.value);
     const content = contentInput?.value.trim();
     
-    // 驗證
     if (!date) {
         showNotification(t('WORKLOG_DATE_REQUIRED') || '請選擇日期', 'error');
         return;
@@ -86,11 +82,9 @@ async function submitWorklog() {
         if (res.ok) {
             showNotification(t('WORKLOG_SUBMIT_SUCCESS') || '工作日誌提交成功！', 'success');
             
-            // 清空表單
             if (hoursInput) hoursInput.value = '';
             if (contentInput) contentInput.value = '';
             
-            // 重新載入記錄
             await loadWorklogRecords();
         } else {
             showNotification(res.msg || t('WORKLOG_SUBMIT_FAILED') || '提交失敗', 'error');
@@ -138,22 +132,23 @@ async function loadWorklogRecords() {
     }
 }
 
+/**
+ * 渲染工作日誌記錄
+ */
 function renderWorklogRecords(worklogs) {
     const listEl = document.getElementById('worklog-records-list');
     if (!listEl) return;
     
     listEl.innerHTML = '';
     
-    // 按日期排序（新到舊）
     const sortedWorklogs = worklogs.sort((a, b) => {
         return new Date(b.date) - new Date(a.date);
     });
     
-    sortedWorklogs.forEach((log, index) => {
+    sortedWorklogs.forEach((log) => {
         const li = document.createElement('li');
         li.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700';
         
-        // 格式化工作日期
         let workDateStr = log.date;
         if (log.date) {
             try {
@@ -171,7 +166,6 @@ function renderWorklogRecords(worklogs) {
             }
         }
         
-        // 格式化提交時間
         let submittedTimeStr = '';
         if (log.submittedAt) {
             try {
@@ -189,21 +183,18 @@ function renderWorklogRecords(worklogs) {
             }
         }
         
-        // ⭐⭐⭐ 安全翻譯函數
         const safeTranslate = (key, fallback) => {
             if (typeof t !== 'function') return fallback;
             const result = t(key);
             return (result && result !== key) ? result : fallback;
         };
         
-        // 取得翻譯文字
         const unitHours = safeTranslate('UNIT_HOURS', '小時');
         const btnEdit = safeTranslate('BTN_EDIT', '編輯');
         const btnDelete = safeTranslate('BTN_DELETE', '刪除');
         const btnResubmit = safeTranslate('BTN_RESUBMIT', '重新提交');
         const reviewComment = safeTranslate('REVIEW_COMMENT', '審核意見');
         
-        // 狀態樣式
         let statusClass = '';
         let statusText = '';
         let statusIcon = '';
@@ -212,7 +203,7 @@ function renderWorklogRecords(worklogs) {
         switch(log.status) {
             case 'PENDING':
                 statusClass = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-                statusText = safeTranslate('STATUS_PENDING', '待審核');  // ⭐ 使用 safeTranslate
+                statusText = safeTranslate('STATUS_PENDING', '待審核');
                 statusIcon = '⏳';
                 actionButtons = `
                     <button onclick="editWorklog('${log.id}')" 
@@ -227,12 +218,12 @@ function renderWorklogRecords(worklogs) {
                 break;
             case 'APPROVED':
                 statusClass = 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-                statusText = safeTranslate('STATUS_APPROVED', '已核准');  // ⭐ 使用 safeTranslate
+                statusText = safeTranslate('STATUS_APPROVED', '已核准');
                 statusIcon = '✅';
                 break;
             case 'REJECTED':
                 statusClass = 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-                statusText = safeTranslate('STATUS_REJECTED', '已拒絕');  // ⭐ 使用 safeTranslate
+                statusText = safeTranslate('STATUS_REJECTED', '已拒絕');
                 statusIcon = '❌';
                 actionButtons = `
                     <button onclick="editWorklog('${log.id}')" 
@@ -282,6 +273,7 @@ function renderWorklogRecords(worklogs) {
         listEl.appendChild(li);
     });
 }
+
 /**
  * 編輯工作日誌
  */
@@ -292,7 +284,6 @@ async function editWorklog(logId) {
         if (res.ok && res.worklog) {
             const log = res.worklog;
             
-            // 填充表單
             const dateInput = document.getElementById('worklog-date');
             const hoursInput = document.getElementById('worklog-hours');
             const contentInput = document.getElementById('worklog-content');
@@ -301,13 +292,11 @@ async function editWorklog(logId) {
             if (hoursInput) hoursInput.value = log.hours;
             if (contentInput) contentInput.value = log.content;
             
-            // 滾動到表單
             document.getElementById('worklog-form-container')?.scrollIntoView({ 
                 behavior: 'smooth',
                 block: 'start'
             });
             
-            // 變更提交按鈕為更新
             const submitBtn = document.getElementById('submit-worklog-btn');
             if (submitBtn) {
                 submitBtn.textContent = t('BTN_UPDATE') || '更新';
@@ -336,7 +325,6 @@ async function updateWorklog(logId) {
     const hours = parseFloat(hoursInput?.value);
     const content = contentInput?.value.trim();
     
-    // 驗證
     if (!date || !hours || !content || content.length < 10) {
         showNotification(t('FORM_INCOMPLETE') || '請完整填寫表單', 'error');
         return;
@@ -358,13 +346,11 @@ async function updateWorklog(logId) {
         if (res.ok) {
             showNotification(t('WORKLOG_UPDATE_SUCCESS') || '工作日誌更新成功！', 'success');
             
-            // 清空表單並恢復提交按鈕
             if (hoursInput) hoursInput.value = '';
             if (contentInput) contentInput.value = '';
             submitBtn.textContent = t('BTN_SUBMIT_WORKLOG') || '提交工作日誌';
             submitBtn.onclick = submitWorklog;
             
-            // 重新載入記錄
             await loadWorklogRecords();
         } else {
             showNotification(res.msg || t('UPDATE_FAILED') || '更新失敗', 'error');
@@ -438,7 +424,7 @@ async function loadPendingWorklogs() {
 }
 
 /**
- * 渲染待審核的工作日誌（完全修正版）
+ * 渲染待審核的工作日誌（完全多語言版）
  */
 function renderPendingWorklogs(worklogs) {
     const listEl = document.getElementById('pending-worklog-list');
@@ -446,22 +432,37 @@ function renderPendingWorklogs(worklogs) {
     
     listEl.innerHTML = '';
     
+    // ✅ 安全翻譯函數
+    const safeTranslate = (key, fallback) => {
+        if (typeof t !== 'function') return fallback;
+        const result = t(key);
+        return (result && result !== key) ? result : fallback;
+    };
+    
+    // ✅ 預先取得所有翻譯
+    const unitHours = safeTranslate('UNIT_HOURS', '小時');
+    const submittedAt = safeTranslate('SUBMITTED_AT', '提交於');
+    const workContent = safeTranslate('WORK_CONTENT', '工作內容');
+    const reviewCommentLabel = safeTranslate('REVIEW_COMMENT', '審核意見');
+    const optionalLabel = safeTranslate('OPTIONAL', '選填');
+    const reviewCommentPlaceholder = safeTranslate('REVIEW_COMMENT_PLACEHOLDER', '填寫審核意見（選填）...');
+    const btnApprove = safeTranslate('BTN_APPROVE', '核准');
+    const btnReject = safeTranslate('BTN_REJECT', '拒絕');
+    const unknownEmployee = safeTranslate('UNKNOWN_EMPLOYEE', '未知員工');
+    const uncategorized = safeTranslate('UNCATEGORIZED', '未分類');
+    
     worklogs.forEach((log) => {
         const li = document.createElement('li');
         li.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700';
         
-        // ⭐ 修正：格式化工作日期（避免時區問題）
+        // 格式化工作日期
         let workDateStr = log.date;
         if (log.date) {
             try {
-                // 如果已經是 YYYY-MM-DD 格式，直接使用
                 if (/^\d{4}-\d{2}-\d{2}$/.test(log.date)) {
                     workDateStr = log.date;
-                } 
-                // 如果是 ISO 格式（包含時間），解析後格式化為本地日期
-                else if (log.date.includes('T')) {
+                } else if (log.date.includes('T')) {
                     const date = new Date(log.date);
-                    // 使用本地時區格式化日期
                     const year = date.getFullYear();
                     const month = String(date.getMonth() + 1).padStart(2, '0');
                     const day = String(date.getDate()).padStart(2, '0');
@@ -472,7 +473,7 @@ function renderPendingWorklogs(worklogs) {
             }
         }
         
-        // ⭐ 格式化提交時間
+        // 格式化提交時間
         let submittedTimeStr = '';
         if (log.submittedAt) {
             try {
@@ -490,51 +491,48 @@ function renderPendingWorklogs(worklogs) {
             }
         }
         
-        // ⭐ 取得翻譯文字
-        const unitHours = t('UNIT_HOURS') || '小時';
-        
         li.innerHTML = `
             <div class="flex justify-between items-start mb-3">
                 <div class="flex-1">
                     <div class="flex items-center space-x-2 mb-2">
-                        <span class="font-bold text-gray-800 dark:text-white">${log.userName || '未知員工'}</span>
+                        <span class="font-bold text-gray-800 dark:text-white">${log.userName || unknownEmployee}</span>
                         <span class="text-xs px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
-                            ${log.department || '未分類'}
+                            ${log.department || uncategorized}
                         </span>
                     </div>
                     <div class="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
                         <span>📅 ${workDateStr}</span>
                         <span>⏱️ ${log.hours} ${unitHours}</span>
-                        ${submittedTimeStr ? `<span>🕐 提交於 ${submittedTimeStr}</span>` : ''}
+                        ${submittedTimeStr ? `<span>🕐 ${submittedAt} ${submittedTimeStr}</span>` : ''}
                     </div>
                 </div>
             </div>
             
             <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-3">
                 <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    📝 工作內容：
+                    📝 ${workContent}：
                 </p>
                 <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">${log.content}</p>
             </div>
             
             <div class="mb-3">
                 <label for="review-comment-${log.id}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    💬 審核意見 <span class="text-xs text-gray-500">(選填)</span>
+                    💬 ${reviewCommentLabel} <span class="text-xs text-gray-500">(${optionalLabel})</span>
                 </label>
                 <textarea id="review-comment-${log.id}" 
                           rows="2" 
-                          placeholder="填寫審核意見（選填）..."
+                          placeholder="${reviewCommentPlaceholder}"
                           class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm"></textarea>
             </div>
             
             <div class="flex space-x-2">
                 <button onclick="approveWorklog('${log.id}')" 
                         class="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md font-semibold transition-colors">
-                    ✅ 核准
+                    ✅ ${btnApprove}
                 </button>
                 <button onclick="rejectWorklog('${log.id}')" 
                         class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-semibold transition-colors">
-                    ❌ 拒絕
+                    ❌ ${btnReject}
                 </button>
             </div>
         `;
@@ -544,78 +542,59 @@ function renderPendingWorklogs(worklogs) {
 }
 
 /**
- * 核准工作日誌（修正版）
+ * 核准工作日誌
  */
 async function approveWorklog(logId) {
     const commentInput = document.getElementById(`review-comment-${logId}`);
     const comment = commentInput?.value.trim() || '';
     
-    console.log('🔍 核准工作日誌 - 開始');
-    console.log('   日誌ID:', logId);
-    console.log('   審核意見:', comment);
-    
     try {
-        // ⭐ 使用 reviewAction 而不是 action
         const url = `reviewWorklog&worklogId=${encodeURIComponent(logId)}&reviewAction=approve&reviewComment=${encodeURIComponent(comment)}`;
-        console.log('📤 發送 URL:', url);
-        
         const res = await callApifetch(url);
         
-        console.log('📥 收到回應:', res);
-        
         if (res.ok) {
-            showNotification('工作日誌已核准', 'success');
+            showNotification(t('WORKLOG_APPROVE_SUCCESS') || '工作日誌已核准', 'success');
             await loadPendingWorklogs();
         } else {
-            showNotification(res.msg || '核准失敗', 'error');
-            console.error('❌ 錯誤訊息:', res.msg);
+            showNotification(res.msg || t('APPROVE_FAILED') || '核准失敗', 'error');
         }
         
     } catch (error) {
-        console.error('❌ 核准失敗:', error);
-        showNotification('網路錯誤', 'error');
+        console.error('核准失敗:', error);
+        showNotification(t('NETWORK_ERROR') || '網路錯誤', 'error');
     }
 }
 
 /**
- * 拒絕工作日誌（修正版）
+ * 拒絕工作日誌
  */
 async function rejectWorklog(logId) {
     const commentInput = document.getElementById(`review-comment-${logId}`);
     const comment = commentInput?.value.trim();
     
     if (!comment) {
-        showNotification('請填寫拒絕原因', 'error');
+        showNotification(t('REJECT_REASON_REQUIRED') || '請填寫拒絕原因', 'error');
         commentInput?.focus();
         return;
     }
     
-    console.log('🔍 拒絕工作日誌 - 開始');
-    console.log('   日誌ID:', logId);
-    console.log('   拒絕原因:', comment);
-    
     try {
-        // ⭐ 使用 reviewAction 而不是 action
         const url = `reviewWorklog&worklogId=${encodeURIComponent(logId)}&reviewAction=reject&reviewComment=${encodeURIComponent(comment)}`;
-        console.log('📤 發送 URL:', url);
-        
         const res = await callApifetch(url);
         
-        console.log('📥 收到回應:', res);
-        
         if (res.ok) {
-            showNotification('工作日誌已拒絕', 'success');
+            showNotification(t('WORKLOG_REJECT_SUCCESS') || '工作日誌已拒絕', 'success');
             await loadPendingWorklogs();
         } else {
-            showNotification(res.msg || '拒絕失敗', 'error');
-            console.error('❌ 錯誤訊息:', res.msg);
+            showNotification(res.msg || t('REJECT_FAILED') || '拒絕失敗', 'error');
         }
         
     } catch (error) {
-        console.error('❌ 拒絕失敗:', error);
-        showNotification('網路錯誤', 'error');
+        console.error('拒絕失敗:', error);
+        showNotification(t('NETWORK_ERROR') || '網路錯誤', 'error');
     }
 }
+
 /**
  * 匯出工作日誌報表（支援全部員工）
  */
@@ -630,16 +609,16 @@ async function exportWorklogReport() {
     const yearMonth = monthInput.value;
     
     if (!employeeId) {
-        showNotification('請先選擇員工', 'error');
+        showNotification(t('SELECT_EMPLOYEE_FIRST') || '請先選擇員工', 'error');
         return;
     }
     
     if (!yearMonth) {
-        showNotification('請先選擇月份', 'error');
+        showNotification(t('SELECT_MONTH_FIRST') || '請先選擇月份', 'error');
         return;
     }
     
-    const loadingText = '正在準備報表...';
+    const loadingText = t('PREPARING_REPORT') || '正在準備報表...';
     showNotification(loadingText, 'warning');
     
     if (exportBtn) {
@@ -649,42 +628,38 @@ async function exportWorklogReport() {
     try {
         let employeeName, worklogs;
         
-        // ⭐ 判斷是否要匯出全部員工
         if (employeeId === 'ALL') {
-            employeeName = '全部員工';
+            employeeName = t('ALL_EMPLOYEES') || '全部員工';
             
-            // 取得全部員工的工作日誌
             const res = await callApifetch(`getAllWorklogReport&yearMonth=${yearMonth}`);
             
             if (!res.ok || !res.worklogs || res.worklogs.length === 0) {
-                showNotification('本月沒有任何工作日誌', 'warning');
+                showNotification(t('NO_WORKLOG_THIS_MONTH') || '本月沒有任何工作日誌', 'warning');
                 return;
             }
             
             worklogs = res.worklogs;
             
         } else {
-            // 單一員工
             employeeName = employeeSelect.options[employeeSelect.selectedIndex].text.split(' (')[0];
             
             const res = await callApifetch(`getWorklogReport&employeeId=${employeeId}&yearMonth=${yearMonth}`);
             
-            if (!res.ok || !res.worklogs || res.worklogs.length === 0) {
-                showNotification('本月沒有工作日誌', 'warning');
+            if (!res.ok || !res.worklogs || !res.worklogs.length === 0) {
+                showNotification(t('NO_WORKLOG_THIS_MONTH') || '本月沒有工作日誌', 'warning');
                 return;
             }
             
             worklogs = res.worklogs;
         }
         
-        // 使用 SheetJS 生成 Excel
         await generateWorklogExcel(employeeName, yearMonth, worklogs);
         
-        showNotification('報表已成功匯出！', 'success');
+        showNotification(t('EXPORT_SUCCESS') || '報表已成功匯出！', 'success');
         
     } catch (error) {
         console.error('匯出失敗:', error);
-        showNotification('匯出失敗，請稍後再試', 'error');
+        showNotification(t('EXPORT_FAILED') || '匯出失敗，請稍後再試', 'error');
         
     } finally {
         if (exportBtn) {
@@ -699,64 +674,74 @@ async function exportWorklogReport() {
 async function generateWorklogExcel(employeeName, yearMonth, worklogs) {
     const [year, month] = yearMonth.split('-');
     
-    // ⭐ 根據是否為全部員工，調整欄位
-    const isAllEmployees = (employeeName === '全部員工');
+    const isAllEmployees = (employeeName === (t('ALL_EMPLOYEES') || '全部員工'));
+    
+    // ✅ 翻譯表頭
+    const headers = {
+        employeeName: t('EMPLOYEE_NAME') || '員工姓名',
+        department: t('DEPARTMENT') || '部門',
+        date: t('DATE') || '日期',
+        workHours: t('WORK_HOURS') || '工作時數',
+        workContent: t('WORK_CONTENT') || '工作內容',
+        status: t('STATUS') || '狀態',
+        reviewComment: t('REVIEW_COMMENT') || '審核意見',
+        submittedTime: t('SUBMITTED_TIME') || '提交時間'
+    };
     
     let exportData;
     
     if (isAllEmployees) {
-        // 全部員工：包含員工姓名欄位
         exportData = worklogs.map(log => ({
-            '員工姓名': log.userName || '未知',
-            '部門': log.department || '未分類',
-            '日期': log.date,
-            '工作時數': log.hours,
-            '工作內容': log.content,
-            '狀態': getStatusText(log.status),
-            '審核意見': log.reviewComment || '-',
-            '提交時間': log.submittedAt ? new Date(log.submittedAt).toLocaleString('zh-TW') : '-'
+            [headers.employeeName]: log.userName || t('UNKNOWN') || '未知',
+            [headers.department]: log.department || t('UNCATEGORIZED') || '未分類',
+            [headers.date]: log.date,
+            [headers.workHours]: log.hours,
+            [headers.workContent]: log.content,
+            [headers.status]: getStatusText(log.status),
+            [headers.reviewComment]: log.reviewComment || '-',
+            [headers.submittedTime]: log.submittedAt ? new Date(log.submittedAt).toLocaleString('zh-TW') : '-'
         }));
     } else {
-        // 單一員工：不需要員工姓名
         exportData = worklogs.map(log => ({
-            '日期': log.date,
-            '工作時數': log.hours,
-            '工作內容': log.content,
-            '狀態': getStatusText(log.status),
-            '審核意見': log.reviewComment || '-',
-            '提交時間': log.submittedAt ? new Date(log.submittedAt).toLocaleString('zh-TW') : '-'
+            [headers.date]: log.date,
+            [headers.workHours]: log.hours,
+            [headers.workContent]: log.content,
+            [headers.status]: getStatusText(log.status),
+            [headers.reviewComment]: log.reviewComment || '-',
+            [headers.submittedTime]: log.submittedAt ? new Date(log.submittedAt).toLocaleString('zh-TW') : '-'
         }));
     }
     
     const ws = XLSX.utils.json_to_sheet(exportData);
     
-    // ⭐ 根據欄位數量調整寬度
     const wscols = isAllEmployees ? [
-        { wch: 12 },  // 員工姓名
-        { wch: 12 },  // 部門
-        { wch: 12 },  // 日期
-        { wch: 10 },  // 工作時數
-        { wch: 50 },  // 工作內容
-        { wch: 12 },  // 狀態
-        { wch: 30 },  // 審核意見
-        { wch: 20 }   // 提交時間
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 10 },
+        { wch: 50 },
+        { wch: 12 },
+        { wch: 30 },
+        { wch: 20 }
     ] : [
-        { wch: 12 },  // 日期
-        { wch: 10 },  // 工作時數
-        { wch: 50 },  // 工作內容
-        { wch: 12 },  // 狀態
-        { wch: 30 },  // 審核意見
-        { wch: 20 }   // 提交時間
+        { wch: 12 },
+        { wch: 10 },
+        { wch: 50 },
+        { wch: 12 },
+        { wch: 30 },
+        { wch: 20 }
     ];
     
     ws['!cols'] = wscols;
     
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, `${month}月工作日誌`);
+    const sheetName = `${month}${t('MONTH_WORKLOG') || '月工作日誌'}`;
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
     
-    const fileName = `${employeeName}_${year}年${month}月_工作日誌.xlsx`;
+    const fileName = `${employeeName}_${year}${t('YEAR') || '年'}${month}${t('MONTH') || '月'}_${t('WORKLOG') || '工作日誌'}.xlsx`;
     XLSX.writeFile(wb, fileName);
 }
+
 /**
  * 獲取狀態文字
  */
@@ -781,26 +766,22 @@ async function loadWorklogExportEmployees() {
         const res = await callApifetch('getAllUsers');
         
         if (res.ok && res.users && res.users.length > 0) {
-            // ⭐ 清空現有選項
             employeeSelect.innerHTML = '';
             
-            // ⭐ 加入「請選擇員工」選項
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
-            defaultOption.textContent = '-- 請選擇員工 --';
+            defaultOption.textContent = t('SELECT_EMPLOYEE_PLACEHOLDER') || '-- 請選擇員工 --';
             employeeSelect.appendChild(defaultOption);
             
-            // ⭐⭐⭐ 加入「全部員工」選項
             const allOption = document.createElement('option');
             allOption.value = 'ALL';
-            allOption.textContent = '全部員工';
+            allOption.textContent = t('ALL_EMPLOYEES') || '全部員工';
             employeeSelect.appendChild(allOption);
             
-            // ⭐ 加入每個員工
             res.users.forEach(user => {
                 const option = document.createElement('option');
                 option.value = user.userId;
-                option.textContent = `${user.name} (${user.dept || '未分類'})`;
+                option.textContent = `${user.name} (${user.dept || t('UNCATEGORIZED') || '未分類'})`;
                 employeeSelect.appendChild(option);
             });
             
