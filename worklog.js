@@ -422,7 +422,7 @@ async function loadPendingWorklogs() {
 }
 
 /**
- * 渲染待審核的工作日誌（完全修正版 - 加入翻譯）
+ * 渲染待審核的工作日誌（完全修正版 - 加入翻譯與日期格式化）
  */
 function renderPendingWorklogs(worklogs) {
     const listEl = document.getElementById('pending-worklog-list');
@@ -433,6 +433,19 @@ function renderPendingWorklogs(worklogs) {
     worklogs.forEach((log) => {
         const li = document.createElement('li');
         li.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700';
+        
+        // ⭐ 格式化工作日期（只顯示日期部分）
+        let workDateStr = log.date;
+        if (log.date) {
+            try {
+                // 如果是 ISO 格式，只取日期部分
+                if (log.date.includes('T')) {
+                    workDateStr = log.date.split('T')[0];
+                }
+            } catch (e) {
+                workDateStr = log.date;
+            }
+        }
         
         // ⭐ 格式化提交時間
         let submittedTimeStr = '';
@@ -462,7 +475,7 @@ function renderPendingWorklogs(worklogs) {
                         </span>
                     </div>
                     <div class="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                        <span>📅 ${log.date}</span>
+                        <span>📅 ${workDateStr}</span>
                         <span>⏱️ ${log.hours} ${t('UNIT_HOURS') || '小時'}</span>
                         ${submittedTimeStr ? `<span>🕐 提交於 ${submittedTimeStr}</span>` : ''}
                     </div>
