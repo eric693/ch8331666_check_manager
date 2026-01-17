@@ -389,7 +389,7 @@
   "LATITUDE_LABEL": "Latitude",
   "LONGITUDE_LABEL": "Longitude",
   "PUNCH_RANGE_LABEL": "Punch Range",
-  "PUNCH_RANGE_DESCRIPTION": "Drag the slider to adjust the allowed punch radius (100-2000 meters).",
+  "PUNCH_RANGE_DESCRIPTION": "Drag the slider to adjust the allowed punch radius (30-2000 meters).",
   
   "ADMIN_PUNCH_ANALYSIS_TITLE": "Employee Punch Analysis",
   "ADMIN_PUNCH_ANALYSIS_DESC": "View employee monthly punch time distribution and work hour statistics",

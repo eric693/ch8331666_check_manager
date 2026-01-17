@@ -550,7 +550,7 @@
   "LATITUDE_LABEL": "Vĩ độ",
   "LONGITUDE_LABEL": "Kinh độ",
   "PUNCH_RANGE_LABEL": "Phạm vi chấm công",
-  "PUNCH_RANGE_DESCRIPTION": "Kéo thanh trượt để điều chỉnh bán kính chấm công cho phép (100–2000 mét).",
+  "PUNCH_RANGE_DESCRIPTION": "Kéo thanh trượt để điều chỉnh bán kính chấm công cho phép (30–2000 mét).",
 
   "ADMIN_PUNCH_ANALYSIS_TITLE": "Phân tích chấm công của nhân viên",
   "ADMIN_PUNCH_ANALYSIS_DESC": "Xem phân bố thời gian chấm công và thống kê giờ làm việc theo tháng",

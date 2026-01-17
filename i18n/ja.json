@@ -383,7 +383,7 @@
   "LATITUDE_LABEL": "緯度",
   "LONGITUDE_LABEL": "経度",
   "PUNCH_RANGE_LABEL": "打刻可能範囲",
-  "PUNCH_RANGE_DESCRIPTION": "スライダーをドラッグして、打刻を許可する半径（100〜2000メートル）を調整してください。",
+  "PUNCH_RANGE_DESCRIPTION": "スライダーをドラッグして、打刻を許可する半径（30〜2000メートル）を調整してください。",
 
   "ADMIN_PUNCH_ANALYSIS_TITLE": "従業員打刻分析",
   "ADMIN_PUNCH_ANALYSIS_DESC": "従業員の月別打刻時間分布と勤務時間統計を確認",

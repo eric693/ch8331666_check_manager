@@ -383,7 +383,7 @@
   "LATITUDE_LABEL": "위도",
   "LONGITUDE_LABEL": "경도",
   "PUNCH_RANGE_LABEL": "출퇴근 허용 범위",
-  "PUNCH_RANGE_DESCRIPTION": "슬라이더를 드래그하여 허용 반경(100~2000m)을 조절하세요.",
+  "PUNCH_RANGE_DESCRIPTION": "슬라이더를 드래그하여 허용 반경(30~2000m)을 조절하세요.",
 
   "ADMIN_PUNCH_ANALYSIS_TITLE": "직원 출퇴근 분석",
   "ADMIN_PUNCH_ANALYSIS_DESC": "직원 월별 출퇴근 시간 분포와 근무 시간 통계를 확인합니다",

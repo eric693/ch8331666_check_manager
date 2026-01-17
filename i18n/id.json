@@ -383,7 +383,7 @@
   "LATITUDE_LABEL": "Lintang",
   "LONGITUDE_LABEL": "Bujur",
   "PUNCH_RANGE_LABEL": "Jangkauan Absen",
-  "PUNCH_RANGE_DESCRIPTION": "Geser slider untuk mengatur radius absen yang diizinkan (100-2000 meter).",
+  "PUNCH_RANGE_DESCRIPTION": "Geser slider untuk mengatur radius absen yang diizinkan (30-2000 meter).",
   
   "ADMIN_PUNCH_ANALYSIS_TITLE": "Analisis Absen Karyawan",
   "ADMIN_PUNCH_ANALYSIS_DESC": "Lihat distribusi waktu absen dan statistik jam kerja bulanan karyawan",
