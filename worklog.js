@@ -413,7 +413,7 @@ async function loadPendingWorklogs() {
 }
 
 /**
- * 渲染待審核的工作日誌
+ * 渲染待審核的工作日誌（完全修正版）
  */
 function renderPendingWorklogs(worklogs) {
     const listEl = document.getElementById('pending-worklog-list');
@@ -425,7 +425,7 @@ function renderPendingWorklogs(worklogs) {
         const li = document.createElement('li');
         li.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700';
         
-        // ⭐⭐⭐ 修正：格式化提交時間
+        // ⭐ 格式化提交時間
         let submittedTimeStr = '';
         if (log.submittedAt) {
             try {
@@ -454,37 +454,37 @@ function renderPendingWorklogs(worklogs) {
                     </div>
                     <div class="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
                         <span>📅 ${log.date}</span>
-                        <span>⏱️ ${log.hours} ${t('UNIT_HOURS') || '小時'}</span>
-                        ${submittedTimeStr ? `<span>🕐 ${submittedTimeStr}</span>` : ''}
+                        <span>⏱️ ${log.hours} ${t('UNIT_HOURS')}</span>
+                        ${submittedTimeStr ? `<span>🕐 提交於 ${submittedTimeStr}</span>` : ''}
                     </div>
                 </div>
             </div>
             
             <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-3">
                 <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    📝 ${t('WORK_CONTENT') || '工作內容'}：
+                    📝 ${t('WORK_CONTENT')}：
                 </p>
                 <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">${log.content}</p>
             </div>
             
             <div class="mb-3">
                 <label for="review-comment-${log.id}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    💬 ${t('REVIEW_COMMENT') || '審核意見'} <span class="text-xs text-gray-500">(${t('OPTIONAL') || '選填'})</span>
+                    💬 ${t('REVIEW_COMMENT')} <span class="text-xs text-gray-500">(${t('OPTIONAL')})</span>
                 </label>
                 <textarea id="review-comment-${log.id}" 
                           rows="2" 
-                          placeholder="${t('REVIEW_COMMENT_PLACEHOLDER') || '填寫審核意見（選填）...'}"
+                          placeholder="${t('REVIEW_COMMENT_PLACEHOLDER')}"
                           class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white text-sm"></textarea>
             </div>
             
             <div class="flex space-x-2">
                 <button onclick="approveWorklog('${log.id}')" 
                         class="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md font-semibold transition-colors">
-                    ✅ ${t('BTN_APPROVE') || '核准'}
+                    ✅ ${t('BTN_APPROVE')}
                 </button>
                 <button onclick="rejectWorklog('${log.id}')" 
                         class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-semibold transition-colors">
-                    ❌ ${t('BTN_REJECT') || '拒絕'}
+                    ❌ ${t('BTN_REJECT')}
                 </button>
             </div>
         `;
