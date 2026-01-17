@@ -48,14 +48,6 @@ async function initSalaryTab() {
         console.log('📋 開始載入薪資歷史...');
         await loadSalaryHistory();
         
-        // ⭐⭐⭐ 新增：綁定查詢按鈕
-        const queryBtn = document.getElementById('query-salary-btn');
-        if (queryBtn) {
-            queryBtn.addEventListener('click', () => {
-                loadEmployeeSalaryByMonth();
-            });
-            console.log('✅ 查詢按鈕已綁定');
-        }
         // 步驟 4：綁定事件（管理員才需要）
         if (session.user.dept === "管理員") {
             console.log('🔧 綁定管理員功能...');
@@ -71,155 +63,13 @@ async function initSalaryTab() {
     }
 }
 // ==================== 員工薪資功能 ====================
+
 /**
- * ✅ 按月份查詢員工薪資（重新計算 + 顯示）
- */
-async function loadEmployeeSalaryByMonth() {
-    try {
-        console.log('🔍 按月份查詢薪資');
-        
-        // 1. 取得選擇的年月
-        const yearMonthEl = document.getElementById('employee-salary-month');
-        if (!yearMonthEl) {
-            showNotification('找不到月份選擇器', 'error');
-            return;
-        }
-        
-        const yearMonth = yearMonthEl.value;
-        if (!yearMonth) {
-            showNotification('請先選擇月份', 'error');
-            return;
-        }
-        
-        console.log(`📅 查詢月份: ${yearMonth}`);
-        
-        // 2. 驗證 Session
-        const session = await callApifetch("checkSession");
-        if (!session.ok || !session.user) {
-            showNotification('請先登入', 'error');
-            return;
-        }
-        
-        const employeeId = session.user.userId;
-        console.log(`👤 員工ID: ${employeeId}`);
-        
-        // 3. 顯示載入狀態
-        const loadingEl = document.getElementById('current-salary-loading');
-        const emptyEl = document.getElementById('current-salary-empty');
-        const contentEl = document.getElementById('current-salary-content');
-        
-        if (loadingEl) loadingEl.style.display = 'block';
-        if (emptyEl) emptyEl.style.display = 'none';
-        if (contentEl) contentEl.style.display = 'none';
-        
-        // 4. 呼叫後端重新計算薪資
-        console.log('🔄 重新計算薪資（包含最新請假記錄）...');
-        showNotification('正在重新計算薪資...', 'info');
-        
-        const calcResult = await callApifetch(
-            `calculateMonthlySalary&employeeId=${encodeURIComponent(employeeId)}&yearMonth=${encodeURIComponent(yearMonth)}`
-        );
-        
-        if (!calcResult.success || !calcResult.data) {
-            throw new Error(calcResult.message || '計算失敗');
-        }
-        
-        console.log('✅ 計算完成');
-        
-        // 5. 儲存計算結果到後端
-        console.log('💾 儲存薪資記錄...');
-        
-        const saveParams = new URLSearchParams({
-            employeeId: calcResult.data.employeeId,
-            employeeName: calcResult.data.employeeName,
-            yearMonth: calcResult.data.yearMonth,
-            salaryType: calcResult.data.salaryType || '月薪',
-            hourlyRate: calcResult.data.hourlyRate || 0,
-            totalWorkHours: calcResult.data.totalWorkHours || 0,
-            totalOvertimeHours: calcResult.data.totalOvertimeHours || 0,
-            baseSalary: calcResult.data.baseSalary,
-            positionAllowance: calcResult.data.positionAllowance || 0,
-            mealAllowance: calcResult.data.mealAllowance || 0,
-            transportAllowance: calcResult.data.transportAllowance || 0,
-            attendanceBonus: calcResult.data.attendanceBonus || 0,
-            performanceBonus: calcResult.data.performanceBonus || 0,
-            otherAllowances: calcResult.data.otherAllowances || 0,
-            weekdayOvertimePay: calcResult.data.weekdayOvertimePay || 0,
-            restdayOvertimePay: calcResult.data.restdayOvertimePay || 0,
-            holidayOvertimePay: calcResult.data.holidayOvertimePay || 0,
-            laborFee: calcResult.data.laborFee || 0,
-            healthFee: calcResult.data.healthFee || 0,
-            employmentFee: calcResult.data.employmentFee || 0,
-            pensionSelf: calcResult.data.pensionSelf || 0,
-            pensionSelfRate: calcResult.data.pensionSelfRate || 0,
-            incomeTax: calcResult.data.incomeTax || 0,
-            leaveDeduction: calcResult.data.leaveDeduction || 0,
-            sickLeaveDays: calcResult.data.sickLeaveDays || 0,
-            sickLeaveDeduction: calcResult.data.sickLeaveDeduction || 0,
-            personalLeaveDays: calcResult.data.personalLeaveDays || 0,
-            personalLeaveDeduction: calcResult.data.personalLeaveDeduction || 0,
-            welfareFee: calcResult.data.welfareFee || 0,
-            dormitoryFee: calcResult.data.dormitoryFee || 0,
-            groupInsurance: calcResult.data.groupInsurance || 0,
-            otherDeductions: calcResult.data.otherDeductions || 0,
-            grossSalary: calcResult.data.grossSalary,
-            netSalary: calcResult.data.netSalary,
-            bankCode: calcResult.data.bankCode || '',
-            bankAccount: calcResult.data.bankAccount || '',
-            status: calcResult.data.status || '已計算',
-            note: calcResult.data.note || ''
-        });
-        
-        await callApifetch(`saveMonthlySalary&${saveParams.toString()}`);
-        console.log('✅ 薪資記錄已儲存');
-        
-        // 6. 顯示計算結果
-        if (loadingEl) loadingEl.style.display = 'none';
-        
-        displayEmployeeSalary(calcResult.data);
-        
-        if (contentEl) contentEl.style.display = 'block';
-        
-        // 7. 載入出勤明細（打卡、加班）
-        await loadAttendanceDetails(yearMonth);
-        
-        // 8. 重新載入薪資歷史
-        await loadSalaryHistory();
-        
-        showNotification('✅ 薪資已更新（包含最新請假記錄）', 'success');
-        
-        console.log('✅ 查詢完成');
-        
-    } catch (error) {
-        console.error('❌ 查詢失敗:', error);
-        
-        const loadingEl = document.getElementById('current-salary-loading');
-        const emptyEl = document.getElementById('current-salary-empty');
-        
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (emptyEl) {
-            emptyEl.innerHTML = `
-                <div class="empty-state-icon">⚠️</div>
-                <div class="empty-state-title">查詢失敗</div>
-                <div class="empty-state-text">
-                    <p>${error.message || '未知錯誤'}</p>
-                    <p style="margin-top: 0.5rem; font-size: 0.875rem;">
-                        請稍後再試，或聯繫管理員
-                    </p>
-                </div>
-            `;
-            emptyEl.style.display = 'block';
-        }
-        
-        showNotification('查詢失敗: ' + error.message, 'error');
-    }
-}
-/**
- * ✅ 載入當前員工的薪資（修正版 - 自動重算）
+ * ✅ 載入當前員工的薪資
  */
 async function loadCurrentEmployeeSalary() {
     try {
-        console.log(`💰 載入員工薪資（含重新計算）`);
+        console.log(`💰 載入員工薪資`);
         
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -232,68 +82,6 @@ async function loadCurrentEmployeeSalary() {
         if (emptyEl) emptyEl.style.display = 'none';
         if (contentEl) contentEl.style.display = 'none';
         
-        // 步驟 1：驗證 Session
-        console.log('🔄 重新計算中...');
-        const session = await callApifetch("checkSession");
-        
-        if (!session.ok || !session.user) {
-            throw new Error('Session 驗證失敗');
-        }
-        
-        const employeeId = session.user.userId;
-        
-        // 步驟 2：呼叫計算 API
-        const calcResult = await callApifetch(`calculateMonthlySalary&employeeId=${encodeURIComponent(employeeId)}&yearMonth=${currentMonth}`);
-        
-        if (calcResult.success && calcResult.data) {
-            console.log('✅ 計算成功，儲存結果...');
-            
-            // ⭐⭐⭐ 關鍵修正：改用後端 API 儲存
-            const saveParams = new URLSearchParams({
-                employeeId: calcResult.data.employeeId,
-                employeeName: calcResult.data.employeeName,
-                yearMonth: calcResult.data.yearMonth,
-                salaryType: calcResult.data.salaryType || '月薪',
-                hourlyRate: calcResult.data.hourlyRate || 0,
-                totalWorkHours: calcResult.data.totalWorkHours || 0,
-                totalOvertimeHours: calcResult.data.totalOvertimeHours || 0,
-                baseSalary: calcResult.data.baseSalary,
-                positionAllowance: calcResult.data.positionAllowance || 0,
-                mealAllowance: calcResult.data.mealAllowance || 0,
-                transportAllowance: calcResult.data.transportAllowance || 0,
-                attendanceBonus: calcResult.data.attendanceBonus || 0,
-                performanceBonus: calcResult.data.performanceBonus || 0,
-                otherAllowances: calcResult.data.otherAllowances || 0,
-                weekdayOvertimePay: calcResult.data.weekdayOvertimePay || 0,
-                restdayOvertimePay: calcResult.data.restdayOvertimePay || 0,
-                holidayOvertimePay: calcResult.data.holidayOvertimePay || 0,
-                laborFee: calcResult.data.laborFee || 0,
-                healthFee: calcResult.data.healthFee || 0,
-                employmentFee: calcResult.data.employmentFee || 0,
-                pensionSelf: calcResult.data.pensionSelf || 0,
-                pensionSelfRate: calcResult.data.pensionSelfRate || 0,
-                incomeTax: calcResult.data.incomeTax || 0,
-                leaveDeduction: calcResult.data.leaveDeduction || 0,
-                sickLeaveDays: calcResult.data.sickLeaveDays || 0,
-                sickLeaveDeduction: calcResult.data.sickLeaveDeduction || 0,
-                personalLeaveDays: calcResult.data.personalLeaveDays || 0,
-                personalLeaveDeduction: calcResult.data.personalLeaveDeduction || 0,
-                welfareFee: calcResult.data.welfareFee || 0,
-                dormitoryFee: calcResult.data.dormitoryFee || 0,
-                groupInsurance: calcResult.data.groupInsurance || 0,
-                otherDeductions: calcResult.data.otherDeductions || 0,
-                grossSalary: calcResult.data.grossSalary,
-                netSalary: calcResult.data.netSalary,
-                bankCode: calcResult.data.bankCode || '',
-                bankAccount: calcResult.data.bankAccount || '',
-                status: calcResult.data.status || '已計算',
-                note: calcResult.data.note || ''
-            });
-            
-            await callApifetch(`saveMonthlySalary&${saveParams.toString()}`);
-        }
-        
-        // 步驟 3：查詢最新資料
         const result = await callApifetch(`getMySalary&yearMonth=${currentMonth}`);
         
         console.log('📥 薪資資料回應:', result);
@@ -301,7 +89,7 @@ async function loadCurrentEmployeeSalary() {
         if (loadingEl) loadingEl.style.display = 'none';
         
         if (result.ok && result.data) {
-            console.log('✅ 成功載入薪資資料（已重算）');
+            console.log('✅ 成功載入薪資資料');
             displayEmployeeSalary(result.data);
             if (contentEl) contentEl.style.display = 'block';
             await loadAttendanceDetails(currentMonth);
@@ -321,6 +109,61 @@ async function loadCurrentEmployeeSalary() {
         if (emptyEl) emptyEl.style.display = 'block';
     }
 }
+
+/**
+ * ✅ 按月份查詢薪資
+ */
+async function loadEmployeeSalaryByMonth() {
+    const monthInput = document.getElementById('employee-salary-month');
+    const yearMonth = monthInput ? monthInput.value : '';
+    
+    if (!yearMonth) {
+        showNotification(t('SALARY_SELECT_MONTH'), 'error');
+        return;
+    }
+    
+    const loadingEl = document.getElementById('current-salary-loading');
+    const emptyEl = document.getElementById('current-salary-empty');
+    const contentEl = document.getElementById('current-salary-content');
+    
+    if (!loadingEl || !emptyEl || !contentEl) {
+        console.warn('薪資顯示元素未找到');
+        return;
+    }
+    
+    try {
+        console.log(`🔍 查詢 ${yearMonth} 薪資`);
+        
+        loadingEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+        contentEl.style.display = 'none';
+        
+        const res = await callApifetch(`getMySalary&yearMonth=${yearMonth}`);
+        
+        console.log(`📥 查詢 ${yearMonth} 薪資回應:`, res);
+        
+        loadingEl.style.display = 'none';
+        
+        if (res.ok && res.data) {
+            console.log(`✅ 找到 ${yearMonth} 的薪資記錄`);
+            displayEmployeeSalary(res.data);
+            contentEl.style.display = 'block';
+            await loadAttendanceDetails(yearMonth);
+        } else {
+            console.log(`⚠️ 沒有 ${yearMonth} 的薪資記錄`);
+            showNoSalaryMessage(yearMonth);
+            emptyEl.style.display = 'block';
+            const detailsSection = document.getElementById('attendance-details-section');
+            if (detailsSection) detailsSection.style.display = 'none';
+        }
+        
+    } catch (error) {
+        console.error(`❌ 載入 ${yearMonth} 薪資失敗:`, error);
+        loadingEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+    }
+}
+
 /**
  * ✅ 載入每日加班明細
  */
@@ -687,7 +530,7 @@ function displayEmployeeSalary(data) {
             const workHoursSummary = document.createElement('div');
             workHoursSummary.className = 'work-hours-summary mb-3 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg';
             
-            let summaryHTML = '<div class="text-sm font-semibold text-blue-300 mb-2">本月工時統計</div>';
+            let summaryHTML = '<div class="text-sm font-semibold text-blue-300 mb-2">📊 本月工時統計</div>';
             
             if (isHourly && totalWorkHours > 0) {
                 summaryHTML += `
@@ -1684,15 +1527,10 @@ function displayWorkHoursFromCalculation(data) {
     workHoursCard.id = 'work-hours-card';
     workHoursCard.className = 'feature-box bg-purple-900/20 border-purple-700 mb-4';
     
-    // ⭐⭐⭐ 修正：統一使用中文欄位
-    const totalWorkHours = parseFloat(data['工作時數'] || 0).toFixed(1);
-    const hourlyRate = data['時薪'] || 0;
-    const baseSalary = data['基本薪資'] || 0;
-    
-    console.log('🔍 displayWorkHoursFromCalculation 讀取的工時資料:');
-    console.log('   總工作時數:', totalWorkHours);
-    console.log('   時薪:', hourlyRate);
-    console.log('   基本薪資:', baseSalary);
+    // ⭐⭐⭐ 修正：保留小數位數
+    const totalWorkHours = parseFloat(data.totalWorkHours || 0).toFixed(1);
+    const hourlyRate = data.hourlyRate || 0;
+    const baseSalary = data.baseSalary || 0;
     
     workHoursCard.innerHTML = `
       <h4 class="font-semibold mb-3 text-purple-400">本月工作時數統計</h4>
@@ -1719,7 +1557,7 @@ function displayWorkHoursFromCalculation(data) {
     `;
     
     detailsSection.insertBefore(workHoursCard, detailsSection.firstChild);
-}
+  }
 
 
 function displayOvertimeFromCalculation(data) {
@@ -1733,17 +1571,16 @@ function displayOvertimeFromCalculation(data) {
     overtimeCard.id = 'overtime-card';
     overtimeCard.className = 'feature-box bg-orange-900/20 border-orange-700 mt-4';
     
-    // ⭐⭐⭐ 修正：統一使用中文欄位
-    const totalOvertimeHours = Math.floor(parseFloat(data['總加班時數']) || 0);
-    const weekdayOvertimePay = parseFloat(data['平日加班費']) || 0;
-    const restdayOvertimePay = parseFloat(data['休息日加班費']) || 0;
-    const holidayOvertimePay = parseFloat(data['國定假日加班費']) || 0;
+    // ⭐⭐⭐ 修正：正確讀取三種加班費
+    const totalOvertimeHours = Math.floor(data.totalOvertimeHours || 0);
+    const weekdayOvertimePay = parseFloat(data.weekdayOvertimePay) || 0;
+    const restdayOvertimePay = parseFloat(data.restdayOvertimePay) || 0;
+    const holidayOvertimePay = parseFloat(data.holidayOvertimePay) || 0;
     
     console.log('🔍 displayOvertimeFromCalculation 讀取的加班費:');
-    console.log('   總加班時數:', totalOvertimeHours);
-    console.log('   平日加班費:', weekdayOvertimePay);
-    console.log('   休息日加班費:', restdayOvertimePay);
-    console.log('   例假日加班費:', holidayOvertimePay);
+    console.log('   平日:', weekdayOvertimePay);
+    console.log('   休息日:', restdayOvertimePay);
+    console.log('   例假日:', holidayOvertimePay);
     
     overtimeCard.innerHTML = `
         <h4 class="font-semibold mb-3 text-orange-400">⏰ 本月加班統計</h4>
