@@ -959,6 +959,13 @@ function displaySalaryCalculation(data, container) {
     const holidayOvertimePay = parseFloat(data.holidayOvertimePay) || 0;
     const totalOvertimeHours = parseFloat(data.totalOvertimeHours) || 0;
     
+    // ⭐⭐⭐ 讀取請假資料
+    const sickLeaveDays = parseFloat(data.sickLeaveDays) || 0;
+    const sickLeaveDeduction = parseFloat(data.sickLeaveDeduction) || 0;
+    const personalLeaveDays = parseFloat(data.personalLeaveDays) || 0;
+    const personalLeaveDeduction = parseFloat(data.personalLeaveDeduction) || 0;
+    const totalLeaveDeduction = parseFloat(data.leaveDeduction) || 0;
+
     container.innerHTML = `
         <div class="calculation-card">
             <h3 class="text-xl font-bold mb-4">
@@ -1150,6 +1157,26 @@ function displaySalaryCalculation(data, container) {
                             <span>請假扣款</span>
                             <span class="font-mono">${formatCurrency(data.leaveDeduction)}</span>
                         </div>
+
+                        <!-- ⭐⭐⭐ 病假明細 -->
+                        ${sickLeaveDays > 0 || personalLeaveDays > 0 ? `
+                            <div class="p-2 bg-yellow-900/20 rounded-lg mt-2 mb-2">
+                                <div class="text-xs space-y-1">
+                                    ${sickLeaveDays > 0 ? `
+                                        <div class="flex justify-between">
+                                            <span class="text-yellow-300">病假 ${sickLeaveDays} 天 (半薪)</span>
+                                            <span class="font-mono text-yellow-200">${formatCurrency(sickLeaveDeduction)}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${personalLeaveDays > 0 ? `
+                                        <div class="flex justify-between">
+                                            <span class="text-yellow-300">事假 ${personalLeaveDays} 天 (全薪)</span>
+                                            <span class="font-mono text-yellow-200">${formatCurrency(personalLeaveDeduction)}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
                     ` : ''}
                     <div class="calculation-row">
                         <span>福利金</span>
