@@ -51,7 +51,9 @@ async function initSalaryTab() {
         // ⭐⭐⭐ 新增：綁定查詢按鈕
         const queryBtn = document.getElementById('query-salary-btn');
         if (queryBtn) {
-            queryBtn.addEventListener('click', loadEmployeeSalaryByMonth);
+            queryBtn.addEventListener('click', () => {
+                loadEmployeeSalaryByMonth();
+            });
             console.log('✅ 查詢按鈕已綁定');
         }
         // 步驟 4：綁定事件（管理員才需要）
