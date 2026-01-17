@@ -509,7 +509,7 @@ function renderPendingWorklogs(worklogs) {
 }
 
 /**
- * 核准工作日誌（除錯版本）
+ * 核准工作日誌（修正版）
  */
 async function approveWorklog(logId) {
     const commentInput = document.getElementById(`review-comment-${logId}`);
@@ -520,8 +520,8 @@ async function approveWorklog(logId) {
     console.log('   審核意見:', comment);
     
     try {
-        // ⭐ 建立 URL（除錯版）
-        const url = `reviewWorklog&id=${encodeURIComponent(logId)}&action=approve&comment=${encodeURIComponent(comment)}`;
+        // ⭐ 使用 reviewAction 而不是 action
+        const url = `reviewWorklog&worklogId=${encodeURIComponent(logId)}&reviewAction=approve&reviewComment=${encodeURIComponent(comment)}`;
         console.log('📤 發送 URL:', url);
         
         const res = await callApifetch(url);
@@ -541,8 +541,9 @@ async function approveWorklog(logId) {
         showNotification('網路錯誤', 'error');
     }
 }
+
 /**
- * 拒絕工作日誌（除錯版本）
+ * 拒絕工作日誌（修正版）
  */
 async function rejectWorklog(logId) {
     const commentInput = document.getElementById(`review-comment-${logId}`);
@@ -559,7 +560,8 @@ async function rejectWorklog(logId) {
     console.log('   拒絕原因:', comment);
     
     try {
-        const url = `reviewWorklog&id=${encodeURIComponent(logId)}&action=reject&comment=${encodeURIComponent(comment)}`;
+        // ⭐ 使用 reviewAction 而不是 action
+        const url = `reviewWorklog&worklogId=${encodeURIComponent(logId)}&reviewAction=reject&reviewComment=${encodeURIComponent(comment)}`;
         console.log('📤 發送 URL:', url);
         
         const res = await callApifetch(url);
