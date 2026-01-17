@@ -2991,24 +2991,40 @@ let punchTimeChart = null;
 async function initAdminAnalysis() {
     await loadEmployeeListForAnalysis();
     
-    // 👇 新增：為工作日誌匯出載入員工列表
+    // ⭐⭐⭐ 新增：為工作日誌匯出載入員工列表
     const worklogExportSelect = document.getElementById('worklog-export-employee');
     if (worklogExportSelect) {
         try {
             const res = await callApifetch('getAllUsers');
             
             if (res.ok && res.users) {
-                worklogExportSelect.innerHTML = '<option value="">請選擇員工</option>';
+                // ⭐ 清空現有選項
+                worklogExportSelect.innerHTML = '';
                 
+                // ⭐ 加入「請選擇員工」
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = '-- 請選擇員工 --';
+                worklogExportSelect.appendChild(defaultOption);
+                
+                // ⭐⭐⭐ 加入「全部員工」選項
+                const allOption = document.createElement('option');
+                allOption.value = 'ALL';
+                allOption.textContent = '📊 全部員工';
+                worklogExportSelect.appendChild(allOption);
+                
+                // ⭐ 加入每個員工
                 res.users.forEach(user => {
                     const option = document.createElement('option');
                     option.value = user.userId;
                     option.textContent = `${user.name} (${user.dept || '未分類'})`;
                     worklogExportSelect.appendChild(option);
                 });
+                
+                console.log('✅ 工作日誌匯出員工選單載入成功');
             }
         } catch (error) {
-            console.error('載入員工列表失敗:', error);
+            console.error('❌ 載入員工列表失敗:', error);
         }
     }
     

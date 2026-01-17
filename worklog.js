@@ -775,3 +775,46 @@ function getStatusText(status) {
     };
     return statusMap[status] || status;
 }
+
+/**
+ * 載入管理員頁面的員工選單（用於匯出工作日誌）
+ */
+async function loadWorklogExportEmployees() {
+    const employeeSelect = document.getElementById('worklog-export-employee');
+    
+    if (!employeeSelect) return;
+    
+    try {
+        const res = await callApifetch('getAllUsers');
+        
+        if (res.ok && res.users && res.users.length > 0) {
+            // ⭐ 清空現有選項
+            employeeSelect.innerHTML = '';
+            
+            // ⭐ 加入「請選擇員工」選項
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '-- 請選擇員工 --';
+            employeeSelect.appendChild(defaultOption);
+            
+            // ⭐⭐⭐ 加入「全部員工」選項
+            const allOption = document.createElement('option');
+            allOption.value = 'ALL';
+            allOption.textContent = '📊 全部員工';
+            employeeSelect.appendChild(allOption);
+            
+            // ⭐ 加入每個員工
+            res.users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.userId;
+                option.textContent = `${user.name} (${user.dept || '未分類'})`;
+                employeeSelect.appendChild(option);
+            });
+            
+            console.log('✅ 員工選單載入成功（含全部員工選項）');
+        }
+        
+    } catch (error) {
+        console.error('❌ 載入員工列表失敗:', error);
+    }
+}
