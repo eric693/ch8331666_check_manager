@@ -493,20 +493,17 @@ function renderPendingWorklogs(worklogs) {
     });
 }
 /**
- * 核准工作日誌（修正版）
+ * 核准工作日誌（完全修正版）
  */
 async function approveWorklog(logId) {
     const commentInput = document.getElementById(`review-comment-${logId}`);
     const comment = commentInput?.value.trim() || '';
     
     try {
-        const params = new URLSearchParams({
-            id: logId,
-            action: 'approve',  // ⭐ 這裡是 'approve' 不是 'APPROVE'
-            comment: comment
-        });
-        
-        const res = await callApifetch(`reviewWorklog&${params.toString()}`);
+        // ⭐ 正確方式：只傳 action 名稱，其他參數用 & 連接
+        const res = await callApifetch(
+            `reviewWorklog&id=${encodeURIComponent(logId)}&action=approve&comment=${encodeURIComponent(comment)}`
+        );
         
         if (res.ok) {
             showNotification(t('WORKLOG_APPROVED') || '工作日誌已核准', 'success');
@@ -522,7 +519,7 @@ async function approveWorklog(logId) {
 }
 
 /**
- * 拒絕工作日誌（修正版）
+ * 拒絕工作日誌（完全修正版）
  */
 async function rejectWorklog(logId) {
     const commentInput = document.getElementById(`review-comment-${logId}`);
@@ -535,13 +532,10 @@ async function rejectWorklog(logId) {
     }
     
     try {
-        const params = new URLSearchParams({
-            id: logId,
-            action: 'reject',  // ⭐ 這裡是 'reject' 不是 'REJECT'
-            comment: comment
-        });
-        
-        const res = await callApifetch(`reviewWorklog&${params.toString()}`);
+        // ⭐ 正確方式：只傳 action 名稱，其他參數用 & 連接
+        const res = await callApifetch(
+            `reviewWorklog&id=${encodeURIComponent(logId)}&action=reject&comment=${encodeURIComponent(comment)}`
+        );
         
         if (res.ok) {
             showNotification(t('WORKLOG_REJECTED') || '工作日誌已拒絕', 'success');
