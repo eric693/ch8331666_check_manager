@@ -1582,7 +1582,7 @@ function initRadiusSlider() {
         const value = e.target.value;
         valueDisplay.textContent = value;
         
-        // 即時更新地圖上的圓形範圍
+        // ✅ 修正：先檢查 circle 是否存在
         if (circle && currentCoords) {
             circle.setRadius(parseInt(value));
         }
