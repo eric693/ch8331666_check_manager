@@ -408,7 +408,7 @@
     "LATITUDE_LABEL": "緯度",
     "LONGITUDE_LABEL": "經度",
     "PUNCH_RANGE_LABEL": "打卡範圍",
-    "PUNCH_RANGE_DESCRIPTION": "拖移滑桿以調整允許打卡的半徑（30-2000 公尺）。",
+    "PUNCH_RANGE_DESCRIPTION": "拖移滑桿以調整允許打卡的半徑（50-2000 公尺）。",
     
     "ADMIN_PUNCH_ANALYSIS_TITLE": "員工打卡分析",
     "ADMIN_PUNCH_ANALYSIS_DESC": "查看員工每月打卡時間分布與工時統計",
