@@ -2519,7 +2519,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
 
     // 頁面切換事件
-    const tabShiftBtn = document.getElementById('tab-shift-btn');÷
+    const tabShiftBtn = document.getElementById('tab-shift-btn');
 
     // 在現有的分頁按鈕事件後面加入：
     tabShiftBtn.addEventListener('click', () => {switchTab('shift-view');});
