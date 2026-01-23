@@ -859,7 +859,7 @@
                                 <label class="form-label required" data-i18n="SALARY_BASE_LABEL">基本薪資</label>
                                 <input type="number" id="config-base-salary" class="form-input" 
                                        placeholder="27,470" min="0" step="1" required>
-                                <span class="form-hint warning">⚠️ <strong>2025年基本工資</strong>: 月薪 28,590 元 | 時薪 190 元</span>
+                                <span class="form-hint warning">⚠️ <strong>2026年基本工資</strong>: 月薪 29,000 元 | 時薪 195 元</span>
                             </div>
                         </div>
                     </div>
@@ -1548,11 +1548,11 @@
                                    attendanceBonus + performanceBonus + otherAllowances;
             
             const insuredSalary = getInsuredSalary(baseSalary);
-            const laborFee = Math.round(insuredSalary * 0.115 * 0.2);
-            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3);
-            const employmentFee = Math.round(insuredSalary * 0.01 * 0.2);
+            const laborFee = Math.round(insuredSalary * 0.115 * 0.2);      // 勞保費率 11.5%
+            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3);    // 健保費率 5.17%
+            const employmentFee = Math.round(insuredSalary * 0.01 * 0.2);  // 就保費率 1%
             const pensionSelf = Math.round(insuredSalary * (pensionRate / 100));
-            
+                    
             let incomeTax = 0;
             if (baseSalary > 34000) {
                 incomeTax = Math.round((baseSalary - 34000) * 0.05);
@@ -1581,10 +1581,10 @@
         }
 
         function getInsuredSalary(salary) {
+            // ⭐ 2026 年投保薪資級距表（預估）
             const brackets = [
-                { min: 0, max: 26400, insured: 26400 },
-                { min: 26401, max: 27600, insured: 27600 },
-                { min: 27601, max: 28800, insured: 28800 },
+                { min: 0, max: 27470, insured: 27470 },       // 最低級距
+                { min: 27471, max: 28800, insured: 28800 },
                 { min: 28801, max: 30300, insured: 30300 },
                 { min: 30301, max: 31800, insured: 31800 },
                 { min: 31801, max: 33300, insured: 33300 },
@@ -1595,7 +1595,7 @@
                 { min: 40101, max: 42000, insured: 42000 },
                 { min: 42001, max: 43900, insured: 43900 },
                 { min: 43901, max: 45800, insured: 45800 },
-                { min: 45801, max: Infinity, insured: 45800 }
+                { min: 45801, max: Infinity, insured: 45800 }  // 最高級距
             ];
             
             for (const bracket of brackets) {
@@ -1604,7 +1604,7 @@
                 }
             }
             
-            return 26400;
+            return 27470;  // 預設最低級距
         }
 
         function setCalculatedValues(
