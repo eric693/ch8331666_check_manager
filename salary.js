@@ -65,11 +65,11 @@ async function initSalaryTab() {
 // ==================== 員工薪資功能 ====================
 
 /**
- * ✅ 載入當前員工的薪資
+ * ✅ 載入當前員工的薪資（修正版 - 先重新計算）
  */
 async function loadCurrentEmployeeSalary() {
     try {
-        console.log(`💰 載入員工薪資`);
+        console.log(`💰 載入員工薪資（先重新計算）`);
         
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -82,6 +82,25 @@ async function loadCurrentEmployeeSalary() {
         if (emptyEl) emptyEl.style.display = 'none';
         if (contentEl) contentEl.style.display = 'none';
         
+        // ⭐⭐⭐ 步驟 1：取得 session
+        const session = await callApifetch('checkSession');
+        
+        if (!session.ok || !session.user) {
+            throw new Error('Session 驗證失敗');
+        }
+        
+        const employeeId = session.user.userId;
+        
+        // ⭐⭐⭐ 步驟 2：先重新計算薪資
+        console.log('🔄 重新計算薪資...');
+        const calcResult = await callApifetch(`calculateMonthlySalary&employeeId=${encodeURIComponent(employeeId)}&yearMonth=${encodeURIComponent(currentMonth)}`);
+        
+        if (calcResult.success && calcResult.data) {
+            console.log('💾 儲存計算結果...');
+            await saveMonthlySalary(calcResult.data);
+        }
+        
+        // ⭐ 步驟 3：讀取薪資資料
         const result = await callApifetch(`getMySalary&yearMonth=${currentMonth}`);
         
         console.log('📥 薪資資料回應:', result);
@@ -111,7 +130,7 @@ async function loadCurrentEmployeeSalary() {
 }
 
 /**
- * ✅ 按月份查詢薪資
+ * ✅ 按月份查詢薪資（修正版 - 先重新計算）
  */
 async function loadEmployeeSalaryByMonth() {
     const monthInput = document.getElementById('employee-salary-month');
@@ -132,12 +151,32 @@ async function loadEmployeeSalaryByMonth() {
     }
     
     try {
-        console.log(`🔍 查詢 ${yearMonth} 薪資`);
+        console.log(`🔍 查詢 ${yearMonth} 薪資（先重新計算）`);
         
         loadingEl.style.display = 'block';
         emptyEl.style.display = 'none';
         contentEl.style.display = 'none';
         
+        // ⭐⭐⭐ 關鍵修正：先取得 session 以獲取 employeeId
+        const session = await callApifetch('checkSession');
+        
+        if (!session.ok || !session.user) {
+            throw new Error('Session 驗證失敗');
+        }
+        
+        const employeeId = session.user.userId;
+        
+        // ⭐⭐⭐ 步驟 1：先重新計算薪資（確保資料是最新的）
+        console.log('🔄 重新計算薪資...');
+        const calcResult = await callApifetch(`calculateMonthlySalary&employeeId=${encodeURIComponent(employeeId)}&yearMonth=${encodeURIComponent(yearMonth)}`);
+        
+        if (calcResult.success && calcResult.data) {
+            // ⭐ 步驟 2：儲存計算結果
+            console.log('💾 儲存計算結果...');
+            await saveMonthlySalary(calcResult.data);
+        }
+        
+        // ⭐ 步驟 3：讀取薪資資料（確保是最新的）
         const res = await callApifetch(`getMySalary&yearMonth=${yearMonth}`);
         
         console.log(`📥 查詢 ${yearMonth} 薪資回應:`, res);
@@ -163,7 +202,6 @@ async function loadEmployeeSalaryByMonth() {
         emptyEl.style.display = 'block';
     }
 }
-
 /**
  * ✅ 載入每日加班明細
  */
@@ -582,16 +620,15 @@ function displayEmployeeSalary(data) {
     safeSet('detail-income-tax', formatCurrency(data.incomeTax));
     safeSet('detail-leave-deduction', formatCurrency(data.leaveDeduction));
     
-    // ⭐⭐⭐ 修正：病假/事假明細（改用英文欄位）
-    const sickLeaveDays = parseFloat(data.sickLeaveDays) || 0;
+    const sickLeaveHours = parseFloat(data.sickLeaveHours) || 0;  // ⭐ 改名
     const sickLeaveDeduction = parseFloat(data.sickLeaveDeduction) || 0;
-    const personalLeaveDays = parseFloat(data.personalLeaveDays) || 0;
+    const personalLeaveHours = parseFloat(data.personalLeaveHours) || 0;  // ⭐ 改名
     const personalLeaveDeduction = parseFloat(data.personalLeaveDeduction) || 0;
 
     console.log('🔍 請假資料檢查:');
-    console.log('   病假天數:', sickLeaveDays);
+    console.log('   病假時數:', sickLeaveHours);  // ⭐ 改名
     console.log('   病假扣款:', sickLeaveDeduction);
-    console.log('   事假天數:', personalLeaveDays);
+    console.log('   事假時數:', personalLeaveHours);  // ⭐ 改名
     console.log('   事假扣款:', personalLeaveDeduction);
 
     const leaveDeductionEl = document.getElementById('detail-leave-deduction');
@@ -609,25 +646,25 @@ function displayEmployeeSalary(data) {
                 oldLeaveDetails.remove();
             }
             
-            if (sickLeaveDays > 0 || personalLeaveDays > 0) {
+            if (sickLeaveHours > 0 || personalLeaveHours > 0) {  // ⭐ 改名
                 const leaveDetails = document.createElement('div');
                 leaveDetails.className = 'leave-details p-2 bg-yellow-900/20 rounded-lg mt-2 mb-2 border border-yellow-700/30';
                 
                 let detailsHTML = '<div class="text-xs space-y-1">';
                 
-                if (sickLeaveDays > 0) {
+                if (sickLeaveHours > 0) {  // ⭐ 改名
                     detailsHTML += `
                         <div class="flex justify-between">
-                            <span class="text-yellow-300">病假 ${sickLeaveDays} 天 (半薪)</span>
+                            <span class="text-yellow-300">病假 ${sickLeaveHours} 小時 (半薪)</span>
                             <span class="font-mono text-yellow-200 font-bold">${formatCurrency(sickLeaveDeduction)}</span>
                         </div>
                     `;
                 }
                 
-                if (personalLeaveDays > 0) {
+                if (personalLeaveHours > 0) {  // ⭐ 改名
                     detailsHTML += `
                         <div class="flex justify-between">
-                            <span class="text-yellow-300">事假 ${personalLeaveDays} 天 (全薪)</span>
+                            <span class="text-yellow-300">事假 ${personalLeaveHours} 小時 (全薪)</span>
                             <span class="font-mono text-yellow-200 font-bold">${formatCurrency(personalLeaveDeduction)}</span>
                         </div>
                     `;
@@ -1008,10 +1045,10 @@ function displaySalaryCalculation(data, container) {
     const holidayOvertimePay = parseFloat(data.holidayOvertimePay) || 0;
     const totalOvertimeHours = parseFloat(data.totalOvertimeHours) || 0;
     
-    // ⭐⭐⭐ 讀取請假資料
-    const sickLeaveDays = parseFloat(data.sickLeaveDays) || 0;
+    // ⭐⭐⭐ 修正：病假/事假明細（改用時數）
+    const sickLeaveHours = parseFloat(data.sickLeaveHours) || 0;  // ⭐ 改名
     const sickLeaveDeduction = parseFloat(data.sickLeaveDeduction) || 0;
-    const personalLeaveDays = parseFloat(data.personalLeaveDays) || 0;
+    const personalLeaveHours = parseFloat(data.personalLeaveHours) || 0;  // ⭐ 改名
     const personalLeaveDeduction = parseFloat(data.personalLeaveDeduction) || 0;
 
     container.innerHTML = `
@@ -1243,18 +1280,18 @@ function displaySalaryCalculation(data, container) {
                         </div>
 
                         <!-- ⭐⭐⭐ 病假/事假明細 -->
-                        ${sickLeaveDays > 0 || personalLeaveDays > 0 ? `
+                        ${sickLeaveHours > 0 || personalLeaveHours > 0 ? `
                             <div class="p-2 bg-yellow-900/20 rounded-lg mt-2 mb-2 border border-yellow-700/30">
                                 <div class="text-xs space-y-1">
-                                    ${sickLeaveDays > 0 ? `
+                                    ${sickLeaveHours > 0 ? `
                                         <div class="flex justify-between">
-                                            <span class="text-yellow-300">病假 ${sickLeaveDays} 天 (半薪)</span>
+                                            <span class="text-yellow-300">病假 ${sickLeaveHours} 小時 (半薪)</span>
                                             <span class="font-mono text-yellow-200">${formatCurrency(sickLeaveDeduction)}</span>
                                         </div>
                                     ` : ''}
-                                    ${personalLeaveDays > 0 ? `
+                                    ${personalLeaveHours > 0 ? `
                                         <div class="flex justify-between">
-                                            <span class="text-yellow-300">事假 ${personalLeaveDays} 天 (全薪)</span>
+                                            <span class="text-yellow-300">事假 ${personalLeaveHours} 小時 (全薪)</span>
                                             <span class="font-mono text-yellow-200">${formatCurrency(personalLeaveDeduction)}</span>
                                         </div>
                                     ` : ''}

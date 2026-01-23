@@ -470,9 +470,6 @@ async function ensureLogin()
           
           if (res.user.dept === "管理員") {
             document.getElementById('tab-admin-btn').style.display = 'block';
-            document.getElementById('tab-shift-btn').style.display = 'block';
-          } else {
-            document.getElementById('tab-shift-btn').style.display = 'none'; // 👈 新增這行
           }
           
           document.getElementById("user-name").textContent = res.user.name;
