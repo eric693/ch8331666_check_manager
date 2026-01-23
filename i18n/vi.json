@@ -774,5 +774,15 @@
   "STATUS_APPROVED": "Đã phê duyệt",
   "STATUS_REJECTED": "Đã từ chối",
   "DELETE_FAILED": "Xóa thất bại",
-  "LOAD_FAILED": "Tải thất bại"
+  "LOAD_FAILED": "Tải thất bại",
+
+  "MY_BASIC_INFO_TITLE": "Thông tin cơ bản của tôi",
+  "MY_BASIC_INFO_DESC": "Điền hoặc cập nhật thông tin cá nhân cơ bản của bạn",
+  "ID_NUMBER_LABEL": "Số CMND/CCCD",
+  "ADDRESS_LABEL": "Địa chỉ",
+  "PHONE_LABEL": "Số điện thoại",
+  "BIRTHDATE_LABEL": "Ngày sinh",
+  "BTN_SAVE_BASIC_INFO": "Lưu thông tin cơ bản",
+  "SAVING": "Đang lưu...",
+  "SAVE_SUCCESS": "Lưu thành công!"
 }

@@ -727,6 +727,15 @@
   "STATUS_APPROVED": "Disetujui",
   "STATUS_REJECTED": "Ditolak",
   "DELETE_FAILED": "Penghapusan gagal",
-  "LOAD_FAILED": "Pemuatan gagal"
+  "LOAD_FAILED": "Pemuatan gagal",
   
+  "MY_BASIC_INFO_TITLE": "Informasi Dasar Saya",
+  "MY_BASIC_INFO_DESC": "Isi atau perbarui informasi dasar pribadi Anda",
+  "ID_NUMBER_LABEL": "Nomor Identitas",
+  "ADDRESS_LABEL": "Alamat",
+  "PHONE_LABEL": "Telepon",
+  "BIRTHDATE_LABEL": "Tanggal Lahir",
+  "BTN_SAVE_BASIC_INFO": "Simpan Informasi Dasar",
+  "SAVING": "Menyimpan...",
+  "SAVE_SUCCESS": "Berhasil disimpan!"
 }

@@ -776,6 +776,16 @@
     "STATUS_APPROVED": "อนุมัติแล้ว",
     "STATUS_REJECTED": "ปฏิเสธแล้ว",
     "DELETE_FAILED": "การลบล้มเหลว",
-    "LOAD_FAILED": "การโหลดล้มเหลว"
+    "LOAD_FAILED": "การโหลดล้มเหลว",
+
+    "MY_BASIC_INFO_TITLE": "ข้อมูลพื้นฐานของฉัน",
+    "MY_BASIC_INFO_DESC": "กรอกหรืออัปเดตข้อมูลส่วนบุคคลพื้นฐานของคุณ",
+    "ID_NUMBER_LABEL": "เลขประจำตัวประชาชน",
+    "ADDRESS_LABEL": "ที่อยู่",
+    "PHONE_LABEL": "โทรศัพท์",
+    "BIRTHDATE_LABEL": "วันเกิด",
+    "BTN_SAVE_BASIC_INFO": "บันทึกข้อมูลพื้นฐาน",
+    "SAVING": "กำลังบันทึก...",
+    "SAVE_SUCCESS": "บันทึกสำเร็จ!"
 }
   

@@ -727,5 +727,15 @@
   "STATUS_APPROVED": "승인됨",
   "STATUS_REJECTED": "거부됨",
   "DELETE_FAILED": "삭제에 실패했습니다",
-  "LOAD_FAILED": "로드에 실패했습니다"
+  "LOAD_FAILED": "로드에 실패했습니다",
+
+  "MY_BASIC_INFO_TITLE": "내 기본 정보",
+  "MY_BASIC_INFO_DESC": "개인 기본 정보를 입력하거나 업데이트하세요",
+  "ID_NUMBER_LABEL": "주민등록번호",
+  "ADDRESS_LABEL": "주소",
+  "PHONE_LABEL": "전화번호",
+  "BIRTHDATE_LABEL": "생년월일",
+  "BTN_SAVE_BASIC_INFO": "기본 정보 저장",
+  "SAVING": "저장 중...",
+  "SAVE_SUCCESS": "저장되었습니다!"
 }

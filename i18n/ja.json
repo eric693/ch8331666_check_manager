@@ -727,5 +727,15 @@
   "STATUS_APPROVED": "承認済み",
   "STATUS_REJECTED": "却下",
   "DELETE_FAILED": "削除に失敗しました",
-  "LOAD_FAILED": "読み込みに失敗しました"
+  "LOAD_FAILED": "読み込みに失敗しました",
+
+  "MY_BASIC_INFO_TITLE": "基本情報",
+  "MY_BASIC_INFO_DESC": "個人の基本情報を入力または更新してください",
+  "ID_NUMBER_LABEL": "身分証番号",
+  "ADDRESS_LABEL": "住所",
+  "PHONE_LABEL": "電話番号",
+  "BIRTHDATE_LABEL": "生年月日",
+  "BTN_SAVE_BASIC_INFO": "基本情報を保存",
+  "SAVING": "保存中...",
+  "SAVE_SUCCESS": "保存しました！"
 }
