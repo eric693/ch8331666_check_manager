@@ -1018,26 +1018,32 @@ async function updateMonthlyStats(records) {
 }
 
 /**
- * ⭐ 新增：智能計算午休時間
+ * ⭐ 修改：根據薪資類型決定午休時間
  */
-function calculateLunchBreak(inTime, outTime) {
+function calculateLunchBreak(inTime, outTime, salaryType) {
     const lunchStart = new Date(inTime);
     lunchStart.setHours(12, 0, 0, 0);
     
     const lunchEnd = new Date(inTime);
-    lunchEnd.setHours(13, 0, 0, 0);
+    
+    // ⭐⭐⭐ 關鍵修改：月薪扣 1 小時，時薪扣 0.5 小時
+    if (salaryType === '月薪') {
+        lunchEnd.setHours(13, 0, 0, 0); // 12:00-13:00 = 1 小時
+    } else {
+        lunchEnd.setHours(12, 30, 0, 0); // 12:00-12:30 = 0.5 小時
+    }
     
     // 如果工作時段完全不涵蓋午休時間，不扣除
     if (outTime <= lunchStart || inTime >= lunchEnd) {
         return 0;
     }
     
-    // 如果涵蓋完整午休時間，扣除 1 小時
+    // 如果涵蓋完整午休時間
     if (inTime < lunchStart && outTime > lunchEnd) {
-        return 1;
+        return salaryType === '月薪' ? 1 : 0.5;
     }
     
-    // 部分涵蓋午休時間，計算實際重疊時間
+    // 部分涵蓋午休時間
     const overlapStart = inTime > lunchStart ? inTime : lunchStart;
     const overlapEnd = outTime < lunchEnd ? outTime : lunchEnd;
     const overlapMs = overlapEnd - overlapStart;
@@ -3803,7 +3809,18 @@ async function doPunch(type) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        const action = `punch&type=${encodeURIComponent(type)}&lat=${lat}&lng=${lng}&note=${encodeURIComponent(navigator.userAgent)}`;
+        
+        const now = new Date();
+        const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        const roundedTime = roundPunchTime(currentTime);
+        
+        // 組合完整的日期時間
+        const today = now.toISOString().split('T')[0];
+        const datetime = `${today}T${roundedTime}:00`;
+        
+        console.log(`原始時間: ${currentTime}, 進位後: ${roundedTime}`);
+        
+        const action = `punch&type=${encodeURIComponent(type)}&lat=${lat}&lng=${lng}&datetime=${encodeURIComponent(datetime)}&note=${encodeURIComponent(navigator.userAgent)}`;
         
         try {
             const res = await callApifetch(action);

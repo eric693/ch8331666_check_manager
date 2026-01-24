@@ -740,5 +740,6 @@
   "SAVE_SUCCESS": "Berhasil disimpan!",
 
   "STATS_WORK_HOURS": "Jam Kehadiran",
-  "STATS_NORMAL_HOURS": "Jam Absen Normal"
+  "STATS_NORMAL_HOURS": "Jam Absen Normal",
+  "SALARY_EARLY_LEAVE_DEDUCT": "Potongan Pulang Cepat"
 }

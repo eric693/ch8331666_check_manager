@@ -486,6 +486,7 @@ function displayEmployeeSalary(data) {
         (parseFloat(data.pensionSelf) || 0) +        // ← 改這裡
         (parseFloat(data.incomeTax) || 0) +          // ← 改這裡
         (parseFloat(data.leaveDeduction) || 0) +     // ← 改這裡
+        (parseFloat(data.earlyLeaveDeduction || data['早退扣款']) || 0) +
         (parseFloat(data.welfareFee) || 0) +         // ← 改這裡
         (parseFloat(data.dormitoryFee) || 0) +       // ← 改這裡
         (parseFloat(data.groupInsurance) || 0) +     // ← 改這裡
@@ -602,6 +603,10 @@ function displayEmployeeSalary(data) {
     safeSet('detail-income-tax', formatCurrency(data.incomeTax));
     safeSet('detail-leave-deduction', formatCurrency(data.leaveDeduction));
     
+    // ⭐⭐⭐ 新增：早退扣款顯示
+    const earlyLeaveDeduction = parseFloat(data.earlyLeaveDeduction || data['早退扣款']) || 0;
+    safeSet('detail-early-leave-deduction', formatCurrency(earlyLeaveDeduction));
+
     const sickLeaveHours = parseFloat(data.sickLeaveHours) || 0;  // ⭐ 改名
     const sickLeaveDeduction = parseFloat(data.sickLeaveDeduction) || 0;
     const personalLeaveHours = parseFloat(data.personalLeaveHours) || 0;  // ⭐ 改名
@@ -612,6 +617,7 @@ function displayEmployeeSalary(data) {
     console.log('   病假扣款:', sickLeaveDeduction);
     console.log('   事假時數:', personalLeaveHours);  // ⭐ 改名
     console.log('   事假扣款:', personalLeaveDeduction);
+    console.log('   早退扣款:', earlyLeaveDeduction); // ⭐ 新增
 
     const leaveDeductionEl = document.getElementById('detail-leave-deduction');
 
@@ -1023,6 +1029,7 @@ function displaySalaryCalculation(data, container) {
         (parseFloat(data.pensionSelf) || 0) + 
         (parseFloat(data.incomeTax) || 0) + 
         (parseFloat(data.leaveDeduction) || 0) +
+        (parseFloat(data.earlyLeaveDeduction || data['早退扣款']) || 0) +
         (parseFloat(data.welfareFee) || 0) +
         (parseFloat(data.dormitoryFee) || 0) +
         (parseFloat(data.groupInsurance) || 0) +
@@ -1292,6 +1299,13 @@ function displaySalaryCalculation(data, container) {
                         ` : ''}
                     ` : ''}
                     
+                    <!-- ⭐⭐⭐ 新增：早退扣款 -->
+                    ${!isHourly && earlyLeaveDeduction > 0 ? `
+                        <div class="calculation-row">
+                            <span>早退扣款</span>
+                            <span class="font-mono">${formatCurrency(earlyLeaveDeduction)}</span>
+                        </div>
+                    ` : ''}
                     <div class="calculation-row">
                         <span>福利金</span>
                         <span class="font-mono">${formatCurrency(data.welfareFee || 0)}</span>

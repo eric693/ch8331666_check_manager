@@ -762,6 +762,12 @@
                                     <div id="leave-details-section" class="mt-2" style="display: none;">
                                         <!-- JavaScript 會在這裡插入明細 -->
                                     </div>
+                                    <!-- ⭐⭐⭐ 新增：早退扣款 -->
+                                    <div class="flex justify-between">
+                                        <span data-i18n="SALARY_EARLY_LEAVE_DEDUCT">早退扣款</span>
+                                        <span id="detail-early-leave-deduction" class="font-mono">$0</span>
+                                    </div>
+
                                     <div class="flex justify-between">
                                         <span data-i18n="SALARY_OTHER_DEDUCT">其他扣款</span>
                                         <span id="detail-other-deductions" class="font-mono">$0</span>
@@ -1399,6 +1405,26 @@
             bindHourlyCalculation();
         });
 
+        /**
+         * ⭐ 新增：將打卡時間進位到最近的整點或 30 分
+         */
+        function roundPunchTime(timeString) {
+            if (!timeString) return timeString;
+            
+            const [hours, minutes] = timeString.split(':').map(Number);
+            let roundedMinutes;
+            
+            if (minutes < 15) {
+                roundedMinutes = 0;
+            } else if (minutes < 45) {
+                roundedMinutes = 30;
+            } else {
+                roundedMinutes = 0;
+                hours = (hours + 1) % 24;
+            }
+            
+            return `${String(hours).padStart(2, '0')}:${String(roundedMinutes).padStart(2, '0')}`;
+        }
         async function checkUserPermission() {
             try {
                 const res = await callApifetch("checkSession");

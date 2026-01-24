@@ -761,5 +761,7 @@
   "SAVE_SUCCESS": "Saved successfully!",
 
   "STATS_WORK_HOURS": "Attendance Hours",
-  "STATS_NORMAL_HOURS": "Regular Clock-in Hours"
+  "STATS_NORMAL_HOURS": "Regular Clock-in Hours",
+
+  "SALARY_EARLY_LEAVE_DEDUCT": "Early Leave Deduction"
 }

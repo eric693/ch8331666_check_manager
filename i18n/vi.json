@@ -787,5 +787,7 @@
   "SAVE_SUCCESS": "Lưu thành công!",
 
   "STATS_WORK_HOURS": "Giờ chấm công",
-  "STATS_NORMAL_HOURS": "Giờ chấm công bình thường"
+  "STATS_NORMAL_HOURS": "Giờ chấm công bình thường",
+
+  "SALARY_EARLY_LEAVE_DEDUCT": "Khấu trừ về sớm"
 }

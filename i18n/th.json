@@ -789,6 +789,8 @@
     "SAVE_SUCCESS": "บันทึกสำเร็จ!",
 
     "STATS_WORK_HOURS": "ชั่วโมงการเข้างาน",
-    "STATS_NORMAL_HOURS": "ชั่วโมงตอกบัตรปกติ"
+    "STATS_NORMAL_HOURS": "ชั่วโมงตอกบัตรปกติ",
+
+    "SALARY_EARLY_LEAVE_DEDUCT": "หักเงินกรณีออกก่อนเวลา"
 }
   

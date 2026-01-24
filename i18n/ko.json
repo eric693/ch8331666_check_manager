@@ -740,5 +740,6 @@
   "SAVE_SUCCESS": "저장되었습니다!",
 
   "STATS_WORK_HOURS": "출근 시간",
-  "STATS_NORMAL_HOURS": "정상 출퇴근 기록 시간"
+  "STATS_NORMAL_HOURS": "정상 출퇴근 기록 시간",
+  "SALARY_EARLY_LEAVE_DEDUCT": "조퇴 공제"
 }

@@ -740,5 +740,6 @@
   "SAVE_SUCCESS": "保存しました！",
 
   "STATS_WORK_HOURS": "出勤時間",
-  "STATS_NORMAL_HOURS": "通常打刻時間"
+  "STATS_NORMAL_HOURS": "通常打刻時間",
+  "SALARY_EARLY_LEAVE_DEDUCT": "早退控除"
 }

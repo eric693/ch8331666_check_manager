@@ -779,6 +779,8 @@
   "SAVE_SUCCESS": "儲存成功！",
 
   "STATS_WORK_HOURS": "出勤時數",
-  "STATS_NORMAL_HOURS": "正常打卡時數"
+  "STATS_NORMAL_HOURS": "正常打卡時數",
+
+  "SALARY_EARLY_LEAVE_DEDUCT": "早退扣款"
 
 }
