@@ -11,6 +11,9 @@ let batchData = [];
 let translations = {}; // 👈 新增：翻譯物件
 let currentLang = localStorage.getItem("lang") || "zh-TW"; // 👈 新增：當前語言
 
+// 👉 新增：權限控制變數
+let currentUserRole = null;
+let isAdmin = false;
 // 月曆專用全域變數
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth(); // 0-11
@@ -84,12 +87,14 @@ function renderTranslations(container = document) {
 // ========== 初始化 ==========
 document.addEventListener('DOMContentLoaded', async function() { 
     await loadTranslations(currentLang);
+    await loadUserPermissions();
     initializeTabs();
     loadEmployees();
     loadLocations();
     loadShifts();
     setupEventListeners();
     setupBatchUpload();
+    
     
     // 設定預設日期為今天
     const today = new Date().toISOString().split('T')[0];
@@ -115,6 +120,11 @@ function initializeTabs() {
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
             const tabName = this.getAttribute('data-tab');
+            // 👉 檢查權限
+            if ((tabName === 'add' || tabName === 'batch') && !isAdmin) {
+                showMessage('⛔ 權限不足：只有管理員可以使用此功能', 'error');
+                return;
+            }
             switchTab(tabName);
         });
     });
@@ -139,6 +149,8 @@ function switchTab(tabName) {
     }
 }
 
+
+
 // ========== 事件監聽器 ==========
 
 function setupEventListeners() {
@@ -156,6 +168,76 @@ function setupEventListeners() {
             autoFillShiftTime(this.value);
         });
     }
+}
+
+
+// ========== 👉 權限控制（新增）==========
+
+/**
+ * 載入使用者權限
+ */
+async function loadUserPermissions() {
+    try {
+        const token = localStorage.getItem('sessionToken');
+        if (!token) {
+            console.warn('⚠️ 沒有 token');
+            isAdmin = false;
+            updateUIForPermissions();
+            return;
+        }
+
+        const response = await fetch(`${apiUrl}?action=getUserInfo&token=${token}`);
+        const data = await response.json();
+
+        if (data.ok && data.user) {
+            currentUserRole = data.user.role;
+            isAdmin = (currentUserRole === '管理員' || currentUserRole === 'admin');
+            
+            console.log('✅ 權限載入:', currentUserRole, '| 管理員:', isAdmin);
+            updateUIForPermissions();
+        } else {
+            isAdmin = false;
+            updateUIForPermissions();
+        }
+    } catch (error) {
+        console.error('❌ 權限載入失敗:', error);
+        isAdmin = false;
+        updateUIForPermissions();
+    }
+}
+
+/**
+ * 根據權限更新UI
+ */
+function updateUIForPermissions() {
+    const addTab = document.querySelector('[data-tab="add"]');
+    const batchTab = document.querySelector('[data-tab="batch"]');
+    
+    if (!isAdmin) {
+        if (addTab) addTab.style.display = 'none';
+        if (batchTab) batchTab.style.display = 'none';
+        
+        // 如果正在這些分頁,切回查看
+        const activeTab = document.querySelector('.shift-tab.active');
+        if (activeTab && (activeTab.getAttribute('data-tab') === 'add' || 
+            activeTab.getAttribute('data-tab') === 'batch')) {
+            switchTab('view');
+        }
+    } else {
+        if (addTab) addTab.style.display = 'block';
+        if (batchTab) batchTab.style.display = 'block';
+    }
+}
+
+/**
+ * 檢查管理員權限
+ */
+function checkAdminPermission(actionName) {
+    if (!isAdmin) {
+        showMessage(`⛔ 權限不足：只有管理員可以${actionName}`, 'error');
+        return false;
+    }
+    return true;
 }
 
 function autoFillShiftTime(shiftType) {
@@ -560,9 +642,15 @@ function createShiftItem(shift) {
     div.className = 'shift-item';
     
     const shiftTypeBadge = getShiftTypeBadge(shift.shiftType);
-    
     const startTime = formatTimeOnly(shift.startTime);
     const endTime = formatTimeOnly(shift.endTime);
+    
+    const actionButtons = isAdmin ? `
+        <div class="shift-actions">
+            <button class="btn-icon" onclick="editShift('${shift.shiftId}')">${t('BTN_EDIT')}</button>
+            <button class="btn-icon btn-danger" onclick="deleteShift('${shift.shiftId}')">${t('BTN_DELETE')}</button>
+        </div>
+    ` : '';
     
     div.innerHTML = `
         <div class="shift-info">
@@ -572,10 +660,7 @@ function createShiftItem(shift) {
             <p>${t('SHIFT_LOCATION_LABEL')}: ${shift.location}</p>
             ${shift.note ? `<p>${t('SHIFT_NOTE_LABEL')}: ${shift.note}</p>` : ''}
         </div>
-        <div class="shift-actions">
-            <button class="btn-icon" onclick="editShift('${shift.shiftId}')">${t('BTN_EDIT')}</button>
-            <button class="btn-icon btn-danger" onclick="deleteShift('${shift.shiftId}')">${t('BTN_DELETE')}</button>
-        </div>
+        ${actionButtons}
     `;
     
     return div;
@@ -605,6 +690,7 @@ function formatDate(dateString) {
 }
 
 async function addShift() {
+    if (!checkAdminPermission('新增排班')) return;
     const employeeSelect = document.getElementById('employee-select');
     const selectedOption = employeeSelect.selectedOptions[0];
     
@@ -671,6 +757,7 @@ async function addShift() {
 }
 
 async function editShift(shiftId) {
+    if (!checkAdminPermission('編輯排班')) return;
     const shift = currentShifts.find(s => s.shiftId === shiftId);
     if (!shift) return;
     
@@ -744,6 +831,7 @@ async function updateShift(shiftId) {
 }
 
 async function deleteShift(shiftId) {
+    if (!checkAdminPermission('刪除排班')) return;
     if (!confirm(t('SHIFT_DELETE_CONFIRM'))) return;
     
     try {
@@ -1030,6 +1118,7 @@ function displayBatchPreview(data) {
 }
 
 async function confirmBatchUpload() {
+    if (!checkAdminPermission('批量上傳')) return;
     if (batchData.length === 0) return;
     
     try {
