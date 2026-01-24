@@ -173,15 +173,13 @@ function setupEventListeners() {
 
 // ========== 👉 權限控制（新增）==========
 
-/**
- * 載入使用者權限
- */
 async function loadUserPermissions() {
     try {
         const token = localStorage.getItem('sessionToken');
         if (!token) {
             console.warn('⚠️ 沒有 token');
             isAdmin = false;
+            isScheduler = false;  // 👈 新增
             updateUIForPermissions();
             return;
         }
@@ -191,17 +189,20 @@ async function loadUserPermissions() {
 
         if (data.ok && data.user) {
             currentUserRole = data.user.role;
-            isAdmin = (currentUserRole === '管理員' || currentUserRole === 'admin');
+            isAdmin = (currentUserRole === '管理員');
+            isScheduler = (currentUserRole === '排班人員');  // 👈 新增
             
-            console.log('✅ 權限載入:', currentUserRole, '| 管理員:', isAdmin);
+            console.log('✅ 權限載入:', currentUserRole);
             updateUIForPermissions();
         } else {
             isAdmin = false;
+            isScheduler = false;
             updateUIForPermissions();
         }
     } catch (error) {
         console.error('❌ 權限載入失敗:', error);
         isAdmin = false;
+        isScheduler = false;
         updateUIForPermissions();
     }
 }
@@ -213,11 +214,11 @@ function updateUIForPermissions() {
     const addTab = document.querySelector('[data-tab="add"]');
     const batchTab = document.querySelector('[data-tab="batch"]');
     
-    if (!isAdmin) {
+    // 排班人員和管理員都可以看到排班功能
+    if (!isAdmin && !isScheduler) {
         if (addTab) addTab.style.display = 'none';
         if (batchTab) batchTab.style.display = 'none';
         
-        // 如果正在這些分頁,切回查看
         const activeTab = document.querySelector('.shift-tab.active');
         if (activeTab && (activeTab.getAttribute('data-tab') === 'add' || 
             activeTab.getAttribute('data-tab') === 'batch')) {
@@ -227,14 +228,20 @@ function updateUIForPermissions() {
         if (addTab) addTab.style.display = 'block';
         if (batchTab) batchTab.style.display = 'block';
     }
+    
+    // 👇 新增：隱藏排班人員不需要的功能
+    if (isScheduler && !isAdmin) {
+        // 例如隱藏用戶管理按鈕
+        const adminTab = document.getElementById('tab-admin-btn');
+        if (adminTab) adminTab.style.display = 'none';
+    }
 }
-
 /**
  * 檢查管理員權限
  */
-function checkAdminPermission(actionName) {
-    if (!isAdmin) {
-        showMessage(`⛔ 權限不足：只有管理員可以${actionName}`, 'error');
+function checkSchedulingPermission(actionName) {
+    if (!isAdmin && !isScheduler) {
+        showMessage(`⛔ 權限不足：只有管理員或排班人員可以${actionName}`, 'error');
         return false;
     }
     return true;
@@ -690,7 +697,7 @@ function formatDate(dateString) {
 }
 
 async function addShift() {
-    if (!checkAdminPermission('新增排班')) return;
+    if (!checkSchedulingPermission('新增排班')) return;
     const employeeSelect = document.getElementById('employee-select');
     const selectedOption = employeeSelect.selectedOptions[0];
     
@@ -786,6 +793,8 @@ async function editShift(shiftId) {
 }
 
 async function updateShift(shiftId) {
+    
+    if (!checkSchedulingPermission('編輯排班')) return;
     const employeeSelect = document.getElementById('employee-select');
     const selectedOption = employeeSelect.selectedOptions[0];
     
@@ -831,7 +840,7 @@ async function updateShift(shiftId) {
 }
 
 async function deleteShift(shiftId) {
-    if (!checkAdminPermission('刪除排班')) return;
+    if (!checkSchedulingPermission('刪除排班')) return;
     if (!confirm(t('SHIFT_DELETE_CONFIRM'))) return;
     
     try {
@@ -1118,7 +1127,7 @@ function displayBatchPreview(data) {
 }
 
 async function confirmBatchUpload() {
-    if (!checkAdminPermission('批量上傳')) return;
+    if (!checkSchedulingPermission('批量上傳')) return;
     if (batchData.length === 0) return;
     
     try {

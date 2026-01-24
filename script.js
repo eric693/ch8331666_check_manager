@@ -3905,9 +3905,24 @@ async function loadAllUsers() {
     }
 }
 
-/**
- * 渲染用戶列表
- */
+// ✅ 在 script.js 的 changeUserRole 函數中新增排班人員選項
+async function changeUserRole(userId, userName, newRole) {
+    const roleMap = {
+        'admin': '管理員',
+        'scheduler': '排班人員',  // 👈 新增
+        'employee': '員工'
+    };
+    
+    const roleText = roleMap[newRole] || newRole;
+    
+    if (!confirm(`確定要將「${userName}」的角色改為「${roleText}」嗎？`)) {
+        return;
+    }
+    
+    // ...後續邏輯
+}
+
+// ✅ 修改用戶列表渲染函數
 function renderUsersList(users) {
     const listEl = document.getElementById('users-list');
     if (!listEl) return;
@@ -3919,6 +3934,7 @@ function renderUsersList(users) {
     users.forEach((user, index) => {
         const isCurrentUser = user.userId === currentUserId;
         const isAdmin = user.dept === '管理員';
+        const isScheduler = user.dept === '排班人員';  // 👈 新增
         
         const div = document.createElement('div');
         div.className = 'bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow';
@@ -3928,35 +3944,44 @@ function renderUsersList(users) {
 
         div.innerHTML = `
         <div class="flex items-start space-x-3">
-            <!-- 頭像 -->
             <img src="${user.picture || 'https://via.placeholder.com/48'}" 
                 alt="${user.name}" 
-                class="w-12 h-12 flex-shrink-0 rounded-full border-2 ${isAdmin ? 'border-yellow-400' : 'border-gray-300'}">
+                class="w-12 h-12 flex-shrink-0 rounded-full border-2 ${isAdmin ? 'border-yellow-400' : isScheduler ? 'border-blue-400' : 'border-gray-300'}">
             
-            <!-- 用戶資訊與操作區 -->
             <div class="flex-1 min-w-0">
-                <!-- 名稱與標籤 -->
                 <div class="flex flex-wrap items-center gap-1 mb-1">
                     <p class="font-bold text-gray-800 dark:text-white truncate">${user.name}</p>
                     ${isCurrentUser ? '<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full whitespace-nowrap">您</span>' : ''}
-                    ${isAdmin ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full whitespace-nowrap">管理員</span>' : '<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full whitespace-nowrap">員工</span>'}
+                    ${isAdmin ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full whitespace-nowrap">管理員</span>' : 
+                      isScheduler ? '<span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full whitespace-nowrap">排班人員</span>' :
+                      '<span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full whitespace-nowrap">員工</span>'}
                 </div>
                 
-                <!-- 部門資訊 -->
                 <p class="text-xs text-gray-600 dark:text-gray-400 mb-2 truncate">
                     ${user.dept || '未設定部門'} ${user.rate ? `| ${user.rate}` : ''}
                 </p>
                 
-                <!-- 操作按鈕 -->
                 ${!isCurrentUser ? `
                     <div class="flex flex-wrap gap-2">
-                        <!-- 新增：編輯姓名按鈕 -->
                         <button onclick="openEditNameDialog('${user.userId}', '${user.name}')"
                                 class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-md transition-colors">
                             ✏️ 編輯姓名
                         </button>
                         
                         ${isAdmin ? `
+                            <button onclick="changeUserRole('${user.userId}', '${user.name}', 'scheduler')"
+                                    class="flex-1 min-w-[120px] px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-md transition-colors">
+                                改為排班人員
+                            </button>
+                            <button onclick="changeUserRole('${user.userId}', '${user.name}', 'employee')"
+                                    class="flex-1 min-w-[120px] px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-md transition-colors">
+                                降級為員工
+                            </button>
+                        ` : isScheduler ? `
+                            <button onclick="changeUserRole('${user.userId}', '${user.name}', 'admin')"
+                                    class="flex-1 min-w-[120px] px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs font-semibold rounded-md transition-colors">
+                                升級為管理員
+                            </button>
                             <button onclick="changeUserRole('${user.userId}', '${user.name}', 'employee')"
                                     class="flex-1 min-w-[120px] px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-md transition-colors">
                                 降級為員工
@@ -3965,6 +3990,10 @@ function renderUsersList(users) {
                             <button onclick="changeUserRole('${user.userId}', '${user.name}', 'admin')"
                                     class="flex-1 min-w-[120px] px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs font-semibold rounded-md transition-colors">
                                 升級為管理員
+                            </button>
+                            <button onclick="changeUserRole('${user.userId}', '${user.name}', 'scheduler')"
+                                    class="flex-1 min-w-[120px] px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-md transition-colors">
+                                升級為排班人員
                             </button>
                         `}
                         
@@ -3976,7 +4005,6 @@ function renderUsersList(users) {
                 ` : `
                     <span class="text-xs text-gray-500 dark:text-gray-400">無法操作自己</span>
                 `}
-
             </div>
         </div>
         `;
@@ -4025,11 +4053,20 @@ function filterUsersList(query) {
  * 更改用戶角色
  */
 async function changeUserRole(userId, userName, newRole) {
-    const roleText = newRole === 'admin' ? '管理員' : '員工';
+    // const roleText = newRole === 'admin' ? '管理員' : '員工';
+    
+    const roleMap = {
+        'admin': '管理員',
+        'scheduler': '排班人員',  // 👈 新增
+        'employee': '員工'
+    };
+
+    const roleText = roleMap[newRole] || newRole;
     
     if (!confirm(`確定要將「${userName}」的角色改為「${roleText}」嗎？`)) {
         return;
     }
+
     
     try {
         showNotification('處理中...', 'info');
