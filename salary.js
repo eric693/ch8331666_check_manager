@@ -823,40 +823,43 @@ async function handleSalaryConfigSubmit(e) {
         return el ? el.value.trim() : '';
     };
     
+    const toNumber = (value) => {
+        const num = parseFloat(value) || 0;
+        return Math.round(num); 
+    };
     // 基本資訊
     const employeeId = safeGetValue('config-employee-id');
     const employeeName = safeGetValue('config-employee-name');
-    const idNumber = safeGetValue('config-id-number');           // ⭐ 加入
-    const employeeType = safeGetValue('config-employee-type');   // ⭐ 加入
-    const salaryType = safeGetValue('config-salary-type');       // ⭐ 加入
-    const baseSalary = safeGetValue('config-base-salary');
-    
+    const idNumber = safeGetValue('config-id-number');
+    const employeeType = safeGetValue('config-employee-type');
+    const salaryType = safeGetValue('config-salary-type');
+    const baseSalary = toNumber(safeGetValue('config-base-salary'));  // ⭐ 改這裡
+
     // ⭐ 固定津貼（6項）
-    const positionAllowance = safeGetValue('config-position-allowance') || '0';
-    const mealAllowance = safeGetValue('config-meal-allowance') || '0';
-    const transportAllowance = safeGetValue('config-transport-allowance') || '0';
-    const attendanceBonus = safeGetValue('config-attendance-bonus') || '0';
-    const performanceBonus = safeGetValue('config-performance-bonus') || '0';
-    const otherAllowances = safeGetValue('config-other-allowances') || '0';
-    
+    const positionAllowance = toNumber(safeGetValue('config-position-allowance'));  // ⭐ 改這裡
+    const mealAllowance = toNumber(safeGetValue('config-meal-allowance'));          // ⭐ 改這裡
+    const transportAllowance = toNumber(safeGetValue('config-transport-allowance'));// ⭐ 改這裡
+    const attendanceBonus = toNumber(safeGetValue('config-attendance-bonus'));      // ⭐ 改這裡
+    const performanceBonus = toNumber(safeGetValue('config-performance-bonus'));    // ⭐ 改這裡
+    const otherAllowances = toNumber(safeGetValue('config-other-allowances'));      // ⭐ 改這裡
+
     // 法定扣款
-    const laborFee = safeGetValue('config-labor-fee') || '0';
-    const healthFee = safeGetValue('config-health-fee') || '0';
-    const employmentFee = safeGetValue('config-employment-fee') || '0';
-    const pensionSelf = safeGetValue('config-pension-self') || '0';
-    const incomeTax = safeGetValue('config-income-tax') || '0';
-    const pensionSelfRate = safeGetValue('config-pension-rate') || '0';
-    
+    const laborFee = toNumber(safeGetValue('config-labor-fee'));            // ⭐ 改這裡
+    const healthFee = toNumber(safeGetValue('config-health-fee'));          // ⭐ 改這裡
+    const employmentFee = toNumber(safeGetValue('config-employment-fee'));  // ⭐ 改這裡
+    const pensionSelf = toNumber(safeGetValue('config-pension-self'));      // ⭐ 改這裡
+    const incomeTax = toNumber(safeGetValue('config-income-tax'));          // ⭐ 改這裡
+    const pensionSelfRate = toNumber(safeGetValue('config-pension-rate'));  // ⭐ 改這裡
+
     // ⭐ 其他扣款（4項）
-    const welfareFee = safeGetValue('config-welfare-fee') || '0';
-    const dormitoryFee = safeGetValue('config-dormitory-fee') || '0';
-    const groupInsurance = safeGetValue('config-group-insurance') || '0';
-    const otherDeductions = safeGetValue('config-other-deductions') || '0';
-    
+    const welfareFee = toNumber(safeGetValue('config-welfare-fee'));        // ⭐ 改這裡
+    const dormitoryFee = toNumber(safeGetValue('config-dormitory-fee'));    // ⭐ 改這裡
+    const groupInsurance = toNumber(safeGetValue('config-group-insurance'));// ⭐ 改這裡
+    const otherDeductions = toNumber(safeGetValue('config-other-deductions'));// ⭐ 改這裡
+
     // 其他資訊
     const bankCodeRaw = document.getElementById('config-bank-code').value;
     const bankCode = bankCodeRaw ? String(bankCodeRaw).padStart(3, '0') : '';
-    // const bankCode = safeGetValue('config-bank-code');
     const bankAccount = safeGetValue('config-bank-account');
     const hireDate = safeGetValue('config-hire-date');
     const paymentDay = safeGetValue('config-payment-day') || '5';
