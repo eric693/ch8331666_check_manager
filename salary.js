@@ -65,11 +65,11 @@ async function initSalaryTab() {
 // ==================== 員工薪資功能 ====================
 
 /**
- * ✅ 載入當前員工的薪資（修正版 - 先重新計算）
+ * ✅ 載入當前員工的薪資（簡化版 - 後端自動計算）
  */
 async function loadCurrentEmployeeSalary() {
     try {
-        console.log(`💰 載入員工薪資（先重新計算）`);
+        console.log(`💰 載入員工薪資`);
         
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -82,25 +82,7 @@ async function loadCurrentEmployeeSalary() {
         if (emptyEl) emptyEl.style.display = 'none';
         if (contentEl) contentEl.style.display = 'none';
         
-        // ⭐⭐⭐ 步驟 1：取得 session
-        const session = await callApifetch('checkSession');
-        
-        if (!session.ok || !session.user) {
-            throw new Error('Session 驗證失敗');
-        }
-        
-        const employeeId = session.user.userId;
-        
-        // ⭐⭐⭐ 步驟 2：先重新計算薪資
-        console.log('🔄 重新計算薪資...');
-        const calcResult = await callApifetch(`calculateMonthlySalary&employeeId=${encodeURIComponent(employeeId)}&yearMonth=${encodeURIComponent(currentMonth)}`);
-        
-        if (calcResult.success && calcResult.data) {
-            console.log('💾 儲存計算結果...');
-            await saveMonthlySalary(calcResult.data);
-        }
-        
-        // ⭐ 步驟 3：讀取薪資資料
+        // ⭐ 直接呼叫 getMySalary（後端會自動重新計算並儲存）
         const result = await callApifetch(`getMySalary&yearMonth=${currentMonth}`);
         
         console.log('📥 薪資資料回應:', result);
