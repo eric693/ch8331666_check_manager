@@ -1028,6 +1028,13 @@ function parseBatchData(content, filename) {
     const lines = content.split('\n');
     const data = [];
     
+    console.log('═══════════════════════════════════════');
+    console.log('📤 開始解析批量上傳檔案');
+    console.log('═══════════════════════════════════════');
+    console.log('檔案名稱:', filename);
+    console.log('總行數:', lines.length);
+    console.log('');
+    
     // 從第二行開始(跳過標題)
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -1036,28 +1043,58 @@ function parseBatchData(content, filename) {
         // ⭐ 正確處理 CSV 引號
         const values = parseCSVLine(line);
         
-        // 檢查是否有足夠的欄位(至少 7 個)
-        if (values.length >= 7) {
-            // 跳過排班ID欄位(第一個),從員工ID開始
+        console.log(`第 ${i + 1} 行解析結果:`);
+        console.log('  原始內容:', line.substring(0, 100) + (line.length > 100 ? '...' : ''));
+        console.log('  解析欄位數:', values.length);
+        
+        // ✅ 修正：CSV 範本格式為：員工ID, 員工姓名, 日期, 班別, 上班時間, 下班時間, 地點, 備註
+        // 檢查是否有足夠的欄位(至少 6 個)
+        if (values.length >= 6) {
             const shift = {
-                employeeId: values[1],      // 第 2 欄: 員工ID
-                employeeName: values[2],    // 第 3 欄: 員工姓名
-                date: values[3],            // 第 4 欄: 日期
-                shiftType: values[4],       // 第 5 欄: 班別
-                startTime: values[5],       // 第 6 欄: 上班時間
-                endTime: values[6],         // 第 7 欄: 下班時間
-                location: values[7] || '',  // 第 8 欄: 地點
-                note: values[8] || ''       // 第 9 欄: 備註
+                employeeId: values[0],      // ✅ 第 1 欄: 員工ID
+                employeeName: values[1],    // ✅ 第 2 欄: 員工姓名
+                date: values[2],            // ✅ 第 3 欄: 日期
+                shiftType: values[3],       // ✅ 第 4 欄: 班別
+                startTime: values[4],       // ✅ 第 5 欄: 上班時間
+                endTime: values[5],         // ✅ 第 6 欄: 下班時間
+                location: values[6] || '',  // ✅ 第 7 欄: 地點
+                note: values[7] || ''       // ✅ 第 8 欄: 備註
             };
+            
+            console.log('  ✅ 解析結果:');
+            console.log('    員工ID:', shift.employeeId);
+            console.log('    員工姓名:', shift.employeeName);
+            console.log('    日期:', shift.date);
+            console.log('    班別:', shift.shiftType);
+            console.log('    上班時間:', shift.startTime);
+            console.log('    下班時間:', shift.endTime);
+            console.log('    地點:', shift.location);
             
             // 驗證必填欄位
             if (shift.employeeId && shift.date && shift.shiftType) {
                 data.push(shift);
+                console.log('  ✅ 第', i + 1, '行資料有效');
             } else {
-                console.warn('第 ' + (i+1) + ' 行資料不完整,已略過');
+                console.warn('  ⚠️ 第', i + 1, '行資料不完整,已略過');
+                console.warn('    缺少欄位:');
+                if (!shift.employeeId) console.warn('      - 員工ID');
+                if (!shift.date) console.warn('      - 日期');
+                if (!shift.shiftType) console.warn('      - 班別');
             }
+        } else {
+            console.warn('  ⚠️ 第', i + 1, '行欄位不足');
+            console.warn('    需要: 至少 6 欄 (員工ID, 姓名, 日期, 班別, 開始, 結束)');
+            console.warn('    實際:', values.length, '欄');
+            console.warn('    內容:', values);
         }
+        console.log('');
     }
+    
+    console.log('═══════════════════════════════════════');
+    console.log('📊 解析完成');
+    console.log('有效資料筆數:', data.length);
+    console.log('═══════════════════════════════════════');
+    console.log('');
     
     if (data.length === 0) {
         showMessage(t('SHIFT_BATCH_NO_DATA'), 'error');
@@ -1112,18 +1149,25 @@ function displayBatchPreview(data) {
     
     let html = '<table style="width: 100%; border-collapse: collapse;">';
     html += '<tr style="background: #f5f5f5;">';
-    html += '<th>員工ID</th><th>員工姓名</th><th>日期</th><th>班別</th><th>上班時間</th><th>下班時間</th><th>地點</th>';
+    // ✅ 修正：移除"排班ID"列
+    html += '<th style="padding: 12px; border: 1px solid #ddd; text-align: left;">員工ID</th>';
+    html += '<th style="padding: 12px; border: 1px solid #ddd; text-align: left;">員工姓名</th>';
+    html += '<th style="padding: 12px; border: 1px solid #ddd; text-align: left;">日期</th>';
+    html += '<th style="padding: 12px; border: 1px solid #ddd; text-align: left;">班別</th>';
+    html += '<th style="padding: 12px; border: 1px solid #ddd; text-align: left;">上班時間</th>';
+    html += '<th style="padding: 12px; border: 1px solid #ddd; text-align: left;">下班時間</th>';
+    html += '<th style="padding: 12px; border: 1px solid #ddd; text-align: left;">地點</th>';
     html += '</tr>';
     
-    data.slice(0, 10).forEach(row => {
+    data.slice(0, 10).forEach((row, index) => {
         html += '<tr style="border-bottom: 1px solid #eee;">';
-        html += `<td>${row.employeeId}</td>`;
-        html += `<td>${row.employeeName}</td>`;
-        html += `<td>${row.date}</td>`;
-        html += `<td>${row.shiftType}</td>`;
-        html += `<td>${row.startTime}</td>`;
-        html += `<td>${row.endTime}</td>`;
-        html += `<td>${row.location}</td>`;
+        html += `<td style="padding: 10px; border: 1px solid #ddd; font-size: 12px;">${row.employeeId}</td>`;
+        html += `<td style="padding: 10px; border: 1px solid #ddd;">${row.employeeName}</td>`;
+        html += `<td style="padding: 10px; border: 1px solid #ddd;">${row.date}</td>`;
+        html += `<td style="padding: 10px; border: 1px solid #ddd;">${row.shiftType}</td>`;
+        html += `<td style="padding: 10px; border: 1px solid #ddd;">${row.startTime}</td>`;
+        html += `<td style="padding: 10px; border: 1px solid #ddd;">${row.endTime}</td>`;
+        html += `<td style="padding: 10px; border: 1px solid #ddd;">${row.location}</td>`;
         html += '</tr>';
     });
     
@@ -1136,6 +1180,8 @@ function displayBatchPreview(data) {
     tableDiv.innerHTML = html;
     previewDiv.style.display = 'block';
     document.getElementById('upload-area').style.display = 'none';
+    
+    console.log('✅ 預覽表格已顯示，共', data.length, '筆資料');
 }
 
 async function confirmBatchUpload() {
@@ -1209,12 +1255,22 @@ function cancelBatchUpload() {
 }
 
 function downloadTemplate() {
+    // ✅ 修正：格式为「員工ID, 員工姓名, 日期, 班別, 上班時間, 下班時間, 地點, 備註」
     const template = '員工ID,員工姓名,日期,班別,上班時間,下班時間,地點,備註\n' +
-                    'EMP001,張三,2025-10-25,早班,08:00,16:00,總公司,\n' +
-                    'EMP002,李四,2025-10-25,中班,12:00,20:00,分公司,';
+                    'Ue76b65367821240ac26387d2972a5adf,洪培瑜Eric,2026-01-25,早班,08:00,16:00,總公司,\n' +
+                    'Ue76b65367821240ac26387d2972a5adf,洪培瑜Eric,2026-01-26,中班,12:00,20:00,分公司,\n' +
+                    'EMP001,張三,2026-01-27,晚班,16:00,00:00,總公司,跨日班\n' +
+                    'EMP002,李四,2026-01-28,全日班,09:00,18:00,分公司,\n' +
+                    'EMP003,王五,2026-01-29,排休,00:00,00:00,總公司,休假日';
     
     downloadCSV(template, '排班範本.csv');
+    
+    console.log('✅ 範本檔案已下載');
+    console.log('   格式: 員工ID, 員工姓名, 日期, 班別, 上班時間, 下班時間, 地點, 備註');
+    
+    showMessage('✅ 範本下載成功！請依照範本格式填寫資料', 'success');
 }
+
 
 // ========== 月曆功能 ==========
 
