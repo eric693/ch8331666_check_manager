@@ -618,7 +618,7 @@ function displayEmployeeSalary(data) {
     const sickLeaveDeduction = parseFloat(data.sickLeaveDeduction) || 0;
     const personalLeaveHours = parseFloat(data.personalLeaveHours) || 0;  // ⭐ 改名
     const personalLeaveDeduction = parseFloat(data.personalLeaveDeduction) || 0;
-
+    
     console.log('🔍 請假資料檢查:');
     console.log('   病假時數:', sickLeaveHours);  // ⭐ 改名
     console.log('   病假扣款:', sickLeaveDeduction);
@@ -1056,7 +1056,8 @@ function displaySalaryCalculation(data, container) {
     const sickLeaveDeduction = parseFloat(data.sickLeaveDeduction) || 0;
     const personalLeaveHours = parseFloat(data.personalLeaveHours) || 0;  // ⭐ 改名
     const personalLeaveDeduction = parseFloat(data.personalLeaveDeduction) || 0;
-
+    // ⭐⭐⭐ 新增：早退扣款變數
+    const earlyLeaveDeduction = parseFloat(data.earlyLeaveDeduction || data['早退扣款']) || 0;
     container.innerHTML = `
         <div class="calculation-card">
             <h3 class="text-xl font-bold mb-4">
