@@ -1232,7 +1232,7 @@ function displayBatchPreview(data) {
 }
 
 /**
- * ✅ 修正版：批量上傳（使用 POST 方式）
+ * ✅ 批量上傳（使用 FormData 避免 CORS）
  */
 async function confirmBatchUpload() {
     if (!checkSchedulingPermission('批量上傳')) return;
@@ -1244,17 +1244,18 @@ async function confirmBatchUpload() {
         console.log('📤 準備上傳批量資料:', batchData.length, '筆');
         console.log('📋 前 3 筆資料預覽:', batchData.slice(0, 3));
         
-        // ✅ 使用 POST 方式上傳
+        // ✅ 使用 URLSearchParams（不會觸發 preflight）
+        const formData = new URLSearchParams();
+        formData.append('action', 'batchAddShifts');
+        formData.append('token', token);
+        formData.append('shiftsArray', JSON.stringify(batchData));
+        
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: JSON.stringify({
-                action: 'batchAddShifts',
-                token: token,
-                shiftsArray: batchData
-            })
+            body: formData
         });
         
         console.log('📡 HTTP 狀態:', response.status);
@@ -1273,7 +1274,6 @@ async function confirmBatchUpload() {
             switchTab('view');
             loadShifts();
         } else {
-            // 顯示詳細錯誤
             let errorMsg = data.msg || data.message || '批量上傳失敗';
             
             if (data.results && data.results.errors && data.results.errors.length > 0) {
@@ -1294,6 +1294,8 @@ async function confirmBatchUpload() {
         
         if (error.message.includes('Failed to fetch')) {
             errorMsg = '網路連線失敗，請檢查：\n1. 網路連線是否正常\n2. API 網址是否正確\n3. 伺服器是否運作中';
+        } else if (error.message.includes('CORS')) {
+            errorMsg = 'CORS 錯誤，請確認：\n1. Google Apps Script 已正確部署\n2. 使用的是正確的部署 URL';
         }
         
         showMessage(errorMsg, 'error');
