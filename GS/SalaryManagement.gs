@@ -1494,29 +1494,38 @@ function calculateHourlySalary(employeeId, yearMonth) {
     let healthFee = 0;
     let employmentFee = 0;
     let pensionSelf = 0;
-    let incomeTax = 0;
     
     // ⭐ 修正後：時薪人員固定使用最低投保級距
     // 時薪人員不論月薪資多少，一律使用 $11,100 投保級距
-    const insuredSalary = 29500;  // ⭐ 2026年最低投保級距
+    const insuredSalary = 11100;  // ⭐ 2026年最低投保級距
     laborFee = Math.round(insuredSalary * 0.125 * 0.2);      // NT$738
     healthFee = Math.round(insuredSalary * 0.0517 * 0.3);    // NT$458
-    employmentFee = Math.round(insuredSalary * 0.01 * 0.2);  // NT$59
+    // employmentFee = Math.round(insuredSalary * 0.01 * 0.2);  // NT$59
 
     Logger.log(`📋 時薪人員扣款計算 (固定投保級距: $${insuredSalary})`);
     const pensionSelfRate = parseFloat(config['勞退自提率(%)']) || 0;
     pensionSelf = Math.round(insuredSalary * (pensionSelfRate / 100));
 
-    // 所得稅仍然根據實際薪資計算
-    if (grossSalary > 35000) {  // ⭐ 2026年門檻調整為35000
-      incomeTax = Math.round((grossSalary - 35000) * 0.05);
+    // 月薪 < 88,000 不扣所得稅
+    let incomeTax = 0;
+
+    if (grossSalary >= 88000) {
+      // 只有月收入很高的時薪員工才扣稅
+      if (grossSalary >= 88000 && grossSalary < 176000) {
+        incomeTax = Math.round((grossSalary - 88000) * 0.05);
+      } else if (grossSalary >= 176000) {
+        incomeTax = Math.round(4400 + (grossSalary - 176000) * 0.12);
+      }
+      Logger.log(`⚠️ 時薪員工月收入 ≥ 88,000，計算所得稅: $${incomeTax}`);
+    } else {
+      Logger.log(`✅ 時薪員工月收入 < 88,000，不扣所得稅`);
     }
 
     Logger.log(`📋 時薪人員扣款計算 (固定投保級距: $${insuredSalary})`);
     Logger.log(`   - 應發總額: $${Math.round(grossSalary)}`);
     Logger.log(`   - 勞保費: $${laborFee}`);
     Logger.log(`   - 健保費: $${healthFee}`);
-    Logger.log(`   - 就業保險費: $${employmentFee}`);
+    Logger.log(`   - 就業保險費: $0 (不計算)`);
     Logger.log(`   - 勞退自提 (${pensionSelfRate}%): $${pensionSelf}`);
     Logger.log(`   - 所得稅: $${incomeTax}`);
     
@@ -2204,10 +2213,24 @@ function calculateMonthlySalaryInternal(employeeId, yearMonth) {
     // 8. 法定扣款
     const laborFee = parseFloat(config['勞保費']) || 0;
     const healthFee = parseFloat(config['健保費']) || 0;
-    const employmentFee = parseFloat(config['就業保險費']) || 0;
+    const employmentFee = 0;  // ⭐⭐⭐ 不計算就業保險費
     const pensionSelf = parseFloat(config['勞退自提']) || 0;
     const pensionSelfRate = parseFloat(config['勞退自提率(%)']) || 0;
-    const incomeTax = parseFloat(config['所得稅']) || 0;
+    // ⭐⭐⭐ 修正：重新計算所得稅，而不是使用設定值
+    let incomeTax = 0;
+
+    // 月薪未達 88,000 元，不扣繳所得稅
+    if (baseSalary >= 88000) {
+      // 依扣繳級距表計算
+      if (baseSalary >= 88000 && baseSalary < 176000) {
+        incomeTax = Math.round((baseSalary - 88000) * 0.05);
+      } else if (baseSalary >= 176000) {
+        incomeTax = Math.round(4400 + (baseSalary - 176000) * 0.12);
+      }
+      Logger.log(`⚠️ 月薪 ≥ 88,000，計算所得稅: $${incomeTax}`);
+    } else {
+      Logger.log(`✅ 月薪 < 88,000，不扣所得稅`);
+    }
     
     // 9. 其他扣款
     const welfareFee = parseFloat(config['福利金扣款']) || 0;
