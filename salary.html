@@ -1568,31 +1568,44 @@
             }
             
             const allowancesTotal = positionAllowance + mealAllowance + transportAllowance + 
-                                   attendanceBonus + performanceBonus + otherAllowances;
+                                attendanceBonus + performanceBonus + otherAllowances;
             
-            // const insuredSalary = getInsuredSalary(baseSalary);
-            // ✅ 修正後的程式碼
+            // ✅ 修正：區分時薪/月薪的投保級距
             const salaryType = document.getElementById('config-salary-type').value;
             let insuredSalary;
-
+            
             if (salaryType === '時薪') {
-                insuredSalary = 11100;  // ⭐ 2026年最低投保級距
-                console.log('✅ 時薪人員使用2026年最低投保級距: $11,100');
+                insuredSalary = 11100;  // ⭐ 時薪（兼職）固定使用 11,100
+                console.log('✅ 時薪人員使用投保級距: $11,100');
             } else {
                 // 月薪人員用級距表查詢
                 insuredSalary = getInsuredSalary(baseSalary);
                 console.log(`✅ 月薪人員投保級距: $${insuredSalary}`);
             }
-            const laborFee = Math.round(insuredSalary * 0.125 * 0.2);      // 勞保費率 12.5%
-            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3);    // 健保費率 5.17%
-            const employmentFee = Math.round(insuredSalary * 0.01 * 0.2);  // 就保費率 1%
+            
+            // 計算法定扣款
+            const laborFee = Math.round(insuredSalary * 0.125 * 0.2);      // 勞保費率 12.5%，個人負擔20%
+            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3);    // 健保費率 5.17%，個人負擔30%
+            const employmentFee = Math.round(insuredSalary * 0.01 * 0.2);  // 就保費率 1%，個人負擔20%
             const pensionSelf = Math.round(insuredSalary * (pensionRate / 100));
-                    
+            
+            // ⭐⭐⭐ 修正：取消不合理的所得稅扣繳
             let incomeTax = 0;
-            if (baseSalary > 35000) {  // 2026 年門檻可能調整
-                incomeTax = Math.round((baseSalary - 35000) * 0.05);
+            
+            // 月薪未達 88,000 元，不扣繳所得稅
+            // （大部分公司不會在月薪中預扣所得稅，除非月薪很高）
+            if (salaryType !== '時薪' && baseSalary >= 88000) {
+                // 依扣繳級距表計算（實務上很少用到）
+                if (baseSalary >= 88000 && baseSalary < 176000) {
+                    incomeTax = Math.round((baseSalary - 88000) * 0.05);
+                } else if (baseSalary >= 176000) {
+                    incomeTax = Math.round(4400 + (baseSalary - 176000) * 0.12);
+                }
+                console.log(`⚠️ 月薪 ≥ 88,000，計算所得稅: $${incomeTax}`);
+            } else {
+                console.log('✅ 月薪 < 88,000 或時薪制，不扣所得稅');
             }
-           
+        
             const legalDeductions = laborFee + healthFee + employmentFee + pensionSelf + incomeTax;
             const otherDeductionsTotal = welfareFee + dormitoryFee + groupInsurance + otherDeductions;
             const totalDeductions = legalDeductions + otherDeductionsTotal;
