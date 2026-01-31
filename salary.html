@@ -2158,39 +2158,37 @@
             }
         }
 
-        // ⭐ 新增：手動計算扣款函數
         function manualCalculateDeductions() {
             const baseSalary = parseFloat(document.getElementById('config-base-salary').value) || 0;
             const pensionRate = parseFloat(document.getElementById('config-pension-rate').value) || 0;
+            const salaryType = document.getElementById('config-salary-type').value;
             
             if (baseSalary <= 0) {
                 showNotification('請先輸入基本薪資', 'warning');
                 return;
             }
             
-            // ⭐ 2026 年投保薪資級距
-            // const insuredSalary = getInsuredSalary(baseSalary);
-            // ✅ 修正後的程式碼
-            const salaryType = document.getElementById('config-salary-type').value;
+            // ✅ 區分時薪/月薪的投保級距
             let insuredSalary;
-
             if (salaryType === '時薪') {
-                insuredSalary = 11100;  // ⭐ 2026年最低投保級距
-                console.log('✅ 時薪人員使用2026年最低投保級距: $11,100');
+                insuredSalary = 11100;
             } else {
                 insuredSalary = getInsuredSalary(baseSalary);
-                console.log(`✅ 月薪人員投保級距: $${insuredSalary}`);
             }
-            // ⭐ 2026 年費率計算
+            
             const laborFee = Math.round(insuredSalary * 0.125 * 0.2);
             const healthFee = Math.round(insuredSalary * 0.0517 * 0.3);
             const employmentFee = Math.round(insuredSalary * 0.01 * 0.2);
             const pensionSelf = Math.round(insuredSalary * (pensionRate / 100));
             
-            // ⭐ 2026 年所得稅門檻
+            // ✅ 修正：取消不合理的所得稅
             let incomeTax = 0;
-            if (baseSalary > 35000) {
-                incomeTax = Math.round((baseSalary - 35000) * 0.05);
+            if (salaryType !== '時薪' && baseSalary >= 88000) {
+                if (baseSalary >= 88000 && baseSalary < 176000) {
+                    incomeTax = Math.round((baseSalary - 88000) * 0.05);
+                } else if (baseSalary >= 176000) {
+                    incomeTax = Math.round(4400 + (baseSalary - 176000) * 0.12);
+                }
             }
             
             // 更新欄位
