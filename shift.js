@@ -1457,7 +1457,7 @@ function downloadTemplate() {
     
     console.log('✅ 範本檔案已下載');
     console.log('   共 12 筆測試資料');
-    console.log('   包含：廚房班別、外場班別、年假(特休)、過年假、排休');
+    console.log('   包含：廚房班別、外場班別、年假(特休)、過年假、國定假日、排休');
     console.log('   格式: 員工ID, 員工姓名, 日期, 班別, 上班時間, 下班時間, 地點, 備註');
     
     showMessage('✅ 範本下載成功！包含所有班別類型（含年假和過年假），請依照範本格式填寫', 'success');
