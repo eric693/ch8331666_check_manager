@@ -284,6 +284,7 @@ function autoFillShiftTime(shiftType) {
         // 假別
         '年假': ['00:00', '00:00'],
         '過年假': ['00:00', '00:00'],
+        '國定假日': ['00:00', '00:00'],
         '排休': ['00:00', '00:00']
     };
     
@@ -291,7 +292,7 @@ function autoFillShiftTime(shiftType) {
     const endTimeInput = document.getElementById('end-time');
     
     // 假別處理
-    if (shiftType === '年假' || shiftType === '過年假' || shiftType === '排休') {
+    if (shiftType === '年假' || shiftType === '過年假' || shiftType === '國定假日' || shiftType === '排休') {
         startTimeInput.value = '00:00';
         endTimeInput.value = '00:00';
         startTimeInput.disabled = true;
@@ -744,6 +745,7 @@ function getShiftTypeBadge(shiftType) {
         // 假別
         '年假': 'badge-annual-leave',
         '過年假': 'badge-cny-leave',
+        '國定假日': 'badge-national-holiday',
         '排休': 'badge-dayoff',
         '自訂': 'badge-custom'
     }[shiftType] || 'badge-custom';
@@ -1565,6 +1567,7 @@ function displayMonthlyStats(shifts) {
         floorShifts: 0,
         annualLeave: 0,
         cnyLeave: 0,
+        nationalHoliday: 0,
         dayoff: 0,
         custom: 0
     };
@@ -1578,6 +1581,7 @@ function displayMonthlyStats(shifts) {
             switch(shift.shiftType) {
                 case '年假': stats.annualLeave++; break;
                 case '過年假': stats.cnyLeave++; break;
+                case '國定假日': stats.nationalHoliday++; break;
                 case '排休': stats.dayoff++; break;
                 case '自訂': stats.custom++; break;
             }
@@ -1604,6 +1608,11 @@ function displayMonthlyStats(shifts) {
         <div class="stat-card">
             <div class="stat-label">過年假</div>
             <div class="stat-value" style="color: #f44336;">${stats.cnyLeave}</div>
+        </div>
+        <!-- ⭐ 新增國定假日統計 -->
+        <div class="stat-card">
+            <div class="stat-label">國定假日</div>
+            <div class="stat-value" style="color: #ff9800;">${stats.nationalHoliday}</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">排休</div>
@@ -1739,6 +1748,7 @@ function getShiftClass(shiftType) {
         // 假別
         '年假': 'shift-annual-leave',
         '過年假': 'shift-cny-leave',
+        '國定假日': 'shift-national-holiday',
         '排休': 'shift-dayoff',
         '自訂': 'shift-custom'
     };

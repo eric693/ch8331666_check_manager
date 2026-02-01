@@ -298,6 +298,7 @@
         /* 假別 */
         .badge-annual-leave { background: #e8f5e9; color: #2e7d32; }
         .badge-cny-leave { background: #ffebee; color: #c62828; }
+        .badge-national-holiday { background: #fff3e0; color: #e65100; }
         .badge-dayoff { background: #f5f5f5; color: #757575; }
         .badge-custom { background: #fff9c4; color: #f57f17; }
 
@@ -325,6 +326,12 @@
             border-left-color: #f44336;
         }
 
+        /* ⭐ 新增國定假日樣式 */
+        .shift-national-holiday {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+        
         .shift-dayoff {
             background: #fafafa;
             border-left-color: #9e9e9e;
@@ -848,6 +855,7 @@
                             <optgroup label="假別">
                                 <option value="年假" data-i18n-option="SHIFT_TYPE_ANNUAL_LEAVE">年假(特休)</option>
                                 <option value="過年假" data-i18n-option="SHIFT_TYPE_CNY_LEAVE">過年假</option>
+                                <option value="國定假日">國定假日</option>
                                 <option value="排休" data-i18n-option="SHIFT_TYPE_DAYOFF">排休</option>
                             </optgroup>
                             <option value="自訂" data-i18n-option="SHIFT_TYPE_CUSTOM">自訂</option>
@@ -918,6 +926,7 @@
                                 <optgroup label="假別">
                                     <option value="年假" data-i18n-option="SHIFT_TYPE_ANNUAL_LEAVE">年假(特休)</option>
                                     <option value="過年假" data-i18n-option="SHIFT_TYPE_CNY_LEAVE">過年假</option>
+                                    <option value="國定假日">國定假日</option>
                                     <option value="排休" data-i18n-option="SHIFT_TYPE_DAYOFF">排休</option>
                                 </optgroup>
                                 <option value="自訂" data-i18n-option="SHIFT_TYPE_CUSTOM">自訂時間</option>
