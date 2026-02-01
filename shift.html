@@ -254,6 +254,27 @@
             margin-left: 8px;
         }
 
+        /* 多選下拉框樣式 */
+        #filter-employees {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        #filter-employees option {
+            padding: 6px 8px;
+            cursor: pointer;
+        }
+
+        #filter-employees option:hover {
+            background: #e3f2fd;
+        }
+
+        #filter-employees option:checked {
+            background: #4285f4;
+            color: white;
+        }
         /* 廚房班別 */
         .badge-kitchen-a { background: #fff3e0; color: #e65100; }
         .badge-kitchen-b { background: #ffe0b2; color: #ef6c00; }
@@ -788,6 +809,17 @@
                     <div class="form-group">
                         <label data-i18n="SHIFT_END_DATE">結束日期</label>
                         <input type="date" id="filter-end-date">
+                    </div>
+
+                    <!-- ⭐⭐⭐ 新增：員工篩選（多選） -->
+                    <div class="form-group">
+                        <label data-i18n="SHIFT_EMPLOYEE_FILTER">員工姓名</label>
+                        <select id="filter-employees" multiple size="3" style="height: auto; min-height: 100px;">
+                            <option value="" data-i18n-option="OPTION_ALL">全部</option>
+                        </select>
+                        <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">
+                            按住 Ctrl/Cmd 可多選
+                        </small>
                     </div>
                     <div class="form-group">
                         <label data-i18n="SHIFT_TYPE_LABEL">班別</label>
