@@ -1584,10 +1584,10 @@
                 console.log('   健保費: $458 (固定)');
             } else {
                 // 月薪人員用級距表查詢
-                insuredSalary = getInsuredSalary(baseSalary);
-                laborFee = Math.round(insuredSalary * 0.125 * 0.2);      // 勞保費率 12.5%，個人負擔20%
-                healthFee = Math.round(insuredSalary * 0.0517 * 0.3 * 2.62);  // 健保費率 5.17%，個人負擔30%
-                console.log(`✅ 月薪人員投保級距: $${insuredSalary}`);
+                const insuranceInfo = getInsuredSalary(baseSalary);
+                insuredSalary = insuranceInfo.insured;
+                laborFee = insuranceInfo.labor; 
+                healthFee = insuranceInfo.health;
             }
             
             // 計算法定扣款
@@ -1634,20 +1634,26 @@
         function getInsuredSalary(salary) {
             // ⭐ 2026 年投保薪資級距表（預估）
             const brackets = [
-                { min: 0, max: 29000, insured: 29000 },       // 最低級距
-                { min: 27471, max: 28800, insured: 28800 },
-                { min: 28801, max: 30300, insured: 30300 },
-                { min: 30301, max: 31800, insured: 31800 },
-                { min: 31801, max: 33300, insured: 33300 },
-                { min: 33301, max: 34800, insured: 34800 },
-                { min: 34801, max: 36300, insured: 36300 },
-                { min: 36301, max: 38200, insured: 38200 },
-                { min: 38201, max: 40100, insured: 40100 },
-                { min: 40101, max: 42000, insured: 42000 },
-                { min: 42001, max: 43900, insured: 43900 },
-                { min: 43901, max: 45800, insured: 45800 },
-                { min: 45801, max: Infinity, insured: 45800 }  // 最高級距
+            { min: 0,      max: 29500,   insured: 29500,  labor: 738,  health: 458 }, // 級距 1
+            { min: 29501,  max: 30300,   insured: 30300,  labor: 758,  health: 470 }, // 級距 2
+            { min: 30301,  max: 31800,   insured: 31800,  labor: 795,  health: 493 }, // 級距 3
+            { min: 31801,  max: 33000,   insured: 33000,  labor: 833,  health: 516 }, // 級距 4
+            { min: 33001,  max: 34800,   insured: 34800,  labor: 870,  health: 540 }, // 級距 5
+            { min: 34801,  max: 36300,   insured: 36300,  labor: 908,  health: 563 }, // 級距 6
+            { min: 36301,  max: 38200,   insured: 38200,  labor: 955,  health: 592 }, // 級距 7
+            { min: 38201,  max: 40100,   insured: 40100,  labor: 1002, health: 622 }, // 級距 8
+            { min: 40101,  max: 42000,   insured: 42000,  labor: 1050, health: 651 }, // 級距 9
+            { min: 42001,  max: 43900,   insured: 43900,  labor: 1098, health: 681 }, // 級距 10
+            { min: 43901,  max: 45800,   insured: 45800,  labor: 1145, health: 710 }, // 級距 11
+            { min: 45801,  max: 48200,   insured: 48200,  labor: 1145, health: 748 }, // 級距 12
+            { min: 48201,  max: 50600,   insured: 50600,  labor: 1145, health: 785 }, // 級距 13
+            { min: 50601,  max: 53000,   insured: 53000,  labor: 1145, health: 822 }, // 級距 14
+            { min: 53001,  max: 55400,   insured: 55400,  labor: 1145, health: 859 }, // 級距 15
+            { min: 55401,  max: 57800,   insured: 57800,  labor: 1145, health: 896 }, // 級距 16
+            { min: 57801,  max: 60800,   insured: 60800,  labor: 1145, health: 943 }, // 級距 17
+            { min: 60801,  max: Infinity, insured: 60800, labor: 1145, health: 943 }  // 封頂：超過仍用 60800
             ];
+
             
             for (const bracket of brackets) {
                 if (salary >= bracket.min && salary <= bracket.max) {
@@ -1655,7 +1661,7 @@
                 }
             }
             
-            return 29000;  // 預設最低級距
+            return brackets[0];
         }
 
         function setCalculatedValues(
@@ -2185,9 +2191,10 @@
                 console.log('   勞保費: $277 (固定)');
                 console.log('   健保費: $458 (固定)');
             } else {
-                insuredSalary = getInsuredSalary(baseSalary);
-                laborFee = Math.round(insuredSalary * 0.125 * 0.2);
-                healthFee = Math.round(insuredSalary * 0.0517 * 0.3 * 2.62); 
+                const insuranceInfo = getInsuredSalary(baseSalary);
+                insuredSalary = insuranceInfo.insured;
+                laborFee = insuranceInfo.labor; 
+                healthFee = insuranceInfo.health;
             }
             
 
