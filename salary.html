@@ -1585,8 +1585,8 @@
             } else {
                 // 月薪人員用級距表查詢
                 insuredSalary = getInsuredSalary(baseSalary);
-                const laborFee = Math.round(insuredSalary * 0.125 * 0.2);      // 勞保費率 12.5%，個人負擔20%
-                const healthFee = Math.round(insuredSalary * 0.0517 * 0.3 * 2.62);  // 健保費率 5.17%，個人負擔30%
+                laborFee = Math.round(insuredSalary * 0.125 * 0.2);      // 勞保費率 12.5%，個人負擔20%
+                healthFee = Math.round(insuredSalary * 0.0517 * 0.3 * 2.62);  // 健保費率 5.17%，個人負擔30%
                 console.log(`✅ 月薪人員投保級距: $${insuredSalary}`);
             }
             
@@ -2186,8 +2186,8 @@
                 console.log('   健保費: $458 (固定)');
             } else {
                 insuredSalary = getInsuredSalary(baseSalary);
-                const laborFee = Math.round(insuredSalary * 0.125 * 0.2);
-                const healthFee = Math.round(insuredSalary * 0.0517 * 0.3 * 2.62); 
+                laborFee = Math.round(insuredSalary * 0.125 * 0.2);
+                healthFee = Math.round(insuredSalary * 0.0517 * 0.3 * 2.62); 
             }
             
 
