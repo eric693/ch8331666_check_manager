@@ -1585,7 +1585,7 @@
             
             // 計算法定扣款
             const laborFee = Math.round(insuredSalary * 0.125 * 0.2);      // 勞保費率 12.5%，個人負擔20%
-            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3);    // 健保費率 5.17%，個人負擔30%
+            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3 * 2.62);  // 健保費率 5.17%，個人負擔30%
             const employmentFee = 0;
             const pensionSelf = Math.round(insuredSalary * (pensionRate / 100));
             
@@ -2177,7 +2177,7 @@
             }
             
             const laborFee = Math.round(insuredSalary * 0.125 * 0.2);
-            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3);
+            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3 * 2.62); 
             const employmentFee = 0;
             const pensionSelf = Math.round(insuredSalary * (pensionRate / 100));
             
