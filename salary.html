@@ -1573,7 +1573,8 @@
             // ✅ 修正：區分時薪/月薪的投保級距
             const salaryType = document.getElementById('config-salary-type').value;
             let insuredSalary;
-            
+            let laborFee;
+            let healthFee;
             if (salaryType === '時薪') {
                 insuredSalary = 11100;  // ⭐ 時薪（兼職）固定使用 11,100
                 laborFee = 277;   // ← 改這裡
@@ -2174,6 +2175,8 @@
             
             // ✅ 區分時薪/月薪的投保級距
             let insuredSalary;
+            let laborFee;
+            let healthFee;
             if (salaryType === '時薪') {
                 insuredSalary = 11100;
                 laborFee = 277;   // ← 改這裡
