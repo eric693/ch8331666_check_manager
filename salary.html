@@ -1576,6 +1576,8 @@
             
             if (salaryType === '時薪') {
                 insuredSalary = 11100;  // ⭐ 時薪（兼職）固定使用 11,100
+                laborFee = 277;   // ← 改這裡
+                healthFee = 458;  // ← 改這裡
                 console.log('✅ 時薪人員使用投保級距: $11,100');
             } else {
                 // 月薪人員用級距表查詢
@@ -2172,6 +2174,8 @@
             let insuredSalary;
             if (salaryType === '時薪') {
                 insuredSalary = 11100;
+                laborFee = 277;   // ← 改這裡
+                healthFee = 458;  // ← 改這裡
             } else {
                 insuredSalary = getInsuredSalary(baseSalary);
             }
