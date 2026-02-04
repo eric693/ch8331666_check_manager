@@ -837,8 +837,11 @@ async function handleSalaryConfigSubmit(e) {
     };
     
     const toNumber = (value) => {
-        const num = parseFloat(value) || 0;
-        return Math.round(num); 
+        if (value === '' || value === null || value === undefined) {
+            return 0; // 空值視為 0
+        }
+        const num = parseFloat(value);
+        return isNaN(num) ? 0 : Math.round(num);
     };
     // 基本資訊
     const employeeId = safeGetValue('config-employee-id');
@@ -847,6 +850,23 @@ async function handleSalaryConfigSubmit(e) {
     const employeeType = safeGetValue('config-employee-type');
     const salaryType = safeGetValue('config-salary-type');
     const baseSalary = toNumber(safeGetValue('config-base-salary'));  // ⭐ 改這裡
+
+    if (!employeeId || !employeeName || !salaryType) {
+        showNotification(t('SALARY_FILL_REQUIRED'), 'error');
+        return;
+    }
+    
+    // ⭐⭐⭐ 只有月薪才需要檢查基本薪資 > 0
+    if (salaryType === '月薪' && baseSalary <= 0) {
+        showNotification('月薪的基本薪資必須大於 0', 'error');
+        return;
+    }
+    
+    // 時薪可以是 0（表示尚未設定）
+    if (salaryType === '時薪' && isNaN(baseSalary)) {
+        showNotification('請輸入有效的時薪', 'error');
+        return;
+    }
 
     // ⭐ 固定津貼（6項）
     const positionAllowance = toNumber(safeGetValue('config-position-allowance'));  // ⭐ 改這裡
