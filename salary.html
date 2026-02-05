@@ -2264,9 +2264,6 @@
             }
         }
 
-        /**
-        * ✅ 手動計算扣款（修正版 - 正確處理預設值）
-        */
         function manualCalculateDeductions() {
             const baseSalary = parseFloat(document.getElementById('config-base-salary').value) || 0;
             const pensionRate = parseFloat(document.getElementById('config-pension-rate').value) || 0;
@@ -2277,52 +2274,53 @@
                 return;
             }
             
-            // ✅ 區分時薪/月薪的投保級距
             let insuredSalary;
             let laborFee;
             let healthFee;
             
+            const laborFeeEl = document.getElementById('config-labor-fee');
+            const healthFeeEl = document.getElementById('config-health-fee');
+            
             if (salaryType === '時薪') {
                 insuredSalary = 11100;
                 
-                // ⭐⭐⭐ 關鍵修正：區分「空白」、「0」、「有值」三種狀態
-                const laborFeeEl = document.getElementById('config-labor-fee');
-                const healthFeeEl = document.getElementById('config-health-fee');
+                // ⭐⭐⭐ 修正：欄位為空或為0時，都使用預設值
+                const currentLaborFee = parseFloat(laborFeeEl.value);
+                const currentHealthFee = parseFloat(healthFeeEl.value);
                 
-                // 判斷邏輯：
-                // 1. 欄位為空字串 '' → 使用預設值
-                // 2. 欄位為 '0' → 保留 0（使用者明確設為 0）
-                // 3. 欄位有其他值 → 保留該值
-                laborFee = (laborFeeEl.value === '') ? 277 : parseFloat(laborFeeEl.value);
-                healthFee = (healthFeeEl.value === '') ? 458 : parseFloat(healthFeeEl.value);
+                laborFee = (!laborFeeEl.value || laborFeeEl.value === '' || currentLaborFee === 0) ? 277 : currentLaborFee;
+                healthFee = (!healthFeeEl.value || healthFeeEl.value === '' || currentHealthFee === 0) ? 458 : currentHealthFee;
                 
                 console.log('✅ 時薪人員扣款計算:');
                 console.log('   投保級距: $11,100');
-                console.log('   勞保費:', laborFee, laborFeeEl.value === '' ? '(使用預設 277)' : '(保留現有值)');
-                console.log('   健保費:', healthFee, healthFeeEl.value === '' ? '(使用預設 458)' : '(保留現有值)');
+                console.log('   勞保費:', laborFee);
+                console.log('   健保費:', healthFee);
                 
             } else {
                 // 月薪人員用級距表查詢
                 const insuranceInfo = getInsuredSalary(baseSalary);
                 insuredSalary = insuranceInfo.insured;
                 
-                // 同樣的邏輯應用在月薪
-                const laborFeeEl = document.getElementById('config-labor-fee');
-                const healthFeeEl = document.getElementById('config-health-fee');
+                const currentLaborFee = parseFloat(laborFeeEl.value);
+                const currentHealthFee = parseFloat(healthFeeEl.value);
                 
-                laborFee = (laborFeeEl.value === '') ? insuranceInfo.labor : parseFloat(laborFeeEl.value);
-                healthFee = (healthFeeEl.value === '') ? insuranceInfo.health : parseFloat(healthFeeEl.value);
+                laborFee = (!laborFeeEl.value || laborFeeEl.value === '' || currentLaborFee === 0) 
+                    ? insuranceInfo.labor 
+                    : currentLaborFee;
+                    
+                healthFee = (!healthFeeEl.value || healthFeeEl.value === '' || currentHealthFee === 0) 
+                    ? insuranceInfo.health 
+                    : currentHealthFee;
                 
                 console.log('✅ 月薪人員扣款計算:');
                 console.log('   投保級距: $' + insuredSalary.toLocaleString());
-                console.log('   勞保費:', laborFee, laborFeeEl.value === '' ? '(從級距表)' : '(保留現有值)');
-                console.log('   健保費:', healthFee, healthFeeEl.value === '' ? '(從級距表)' : '(保留現有值)');
+                console.log('   勞保費:', laborFee);
+                console.log('   健保費:', healthFee);
             }
             
             const employmentFee = 0;
             const pensionSelf = Math.round(insuredSalary * (pensionRate / 100));
             
-            // ✅ 修正：取消不合理的所得稅
             let incomeTax = 0;
             if (salaryType !== '時薪' && baseSalary >= 88000) {
                 if (baseSalary >= 88000 && baseSalary < 176000) {
@@ -2332,28 +2330,21 @@
                 }
             }
             
-            // ⭐⭐⭐ 更新欄位（只在欄位為空時填入）
-            const laborFeeEl = document.getElementById('config-labor-fee');
-            const healthFeeEl = document.getElementById('config-health-fee');
+            // 填入計算結果
+            if (laborFeeEl) laborFeeEl.value = laborFee;
+            if (healthFeeEl) healthFeeEl.value = healthFee;
+            
             const employmentFeeEl = document.getElementById('config-employment-fee');
             const pensionSelfEl = document.getElementById('config-pension-self');
             const incomeTaxEl = document.getElementById('config-income-tax');
             
-            // 填入計算結果
-            if (laborFeeEl) laborFeeEl.value = laborFee;
-            if (healthFeeEl) healthFeeEl.value = healthFee;
             if (employmentFeeEl) employmentFeeEl.value = employmentFee;
             if (pensionSelfEl) pensionSelfEl.value = pensionSelf;
             if (incomeTaxEl) incomeTaxEl.value = incomeTax;
             
-            console.log('✅ 扣款已計算:');
-            console.log('   勞保費:', laborFeeEl.value);
-            console.log('   健保費:', healthFeeEl.value);
-            console.log('   就業保險費:', employmentFee);
-            console.log('   勞退自提:', pensionSelf);
-            console.log('   所得稅:', incomeTax);
+            console.log('✅ 扣款已計算完成');
             
-            // ⭐ 立即觸發預覽更新
+            // 立即觸發預覽更新
             updateSalaryPreview();
             
             showNotification('✅ 扣款已計算完成（可手動調整任何項目）', 'success');
