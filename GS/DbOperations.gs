@@ -1922,7 +1922,9 @@ function setEmployeeBasicInfo(data) {
       sheet.getRange(rowIndex, 2).setValue(data.employeeName || '');
       sheet.getRange(rowIndex, 3).setValue(data.idNumber || '');
       sheet.getRange(rowIndex, 4).setValue(data.address || '');
-      sheet.getRange(rowIndex, 5).setValue(data.phone || '');
+      // sheet.getRange(rowIndex, 5).setValue(data.phone || '');
+      const phoneValue = data.phone ? `'${data.phone}` : '';  // 加上單引號
+      sheet.getRange(rowIndex, 5).setValue(phoneValue);
       sheet.getRange(rowIndex, 6).setValue(data.birthDate || '');
       sheet.getRange(rowIndex, 8).setValue(now);
       
