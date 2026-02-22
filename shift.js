@@ -1165,20 +1165,44 @@ async function loadShiftsWithMultipleEmployees(filters = {}) {
     }
 }
 function handleBatchFile(file) {
-    const reader = new FileReader();
+    const fileName = file.name.toLowerCase();
     
-    reader.onload = function(e) {
-        const content = e.target.result;
-        parseBatchData(content, file.name);
-    };
-    
-    if (file.name.endsWith('.csv')) {
+    if (fileName.endsWith('.csv')) {
+        // CSV 處理（原有邏輯）
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let content = e.target.result;
+            parseBatchData(content, file.name);
+        };
         reader.readAsText(file, 'UTF-8');
+        
+    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+        // Excel 處理（新增）
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // 取第一個工作表
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                
+                // 轉換為 CSV 字串，再用原有 parseBatchData 解析
+                const csv = XLSX.utils.sheet_to_csv(worksheet);
+                parseBatchData(csv, file.name);
+                
+            } catch (error) {
+                console.error('Excel 解析失敗:', error);
+                showMessage('Excel 檔案解析失敗，請確認格式正確', 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+        
     } else {
-        showMessage(t('SHIFT_BATCH_CSV_ONLY'), 'error');
+        showMessage('僅支援 CSV、XLS、XLSX 格式', 'error');
     }
 }
-
 function parseBatchData(content, filename) {
     // 移除 BOM (如果有的話)
     content = content.replace(/^\ufeff/, '');
@@ -1228,6 +1252,11 @@ function parseBatchData(content, filename) {
             console.log('    下班時間:', shift.endTime);
             console.log('    地點:', shift.location);
             
+            // ⭐ 標準化日期格式（處理 2026/2/2 → 2026-02-02）
+            if (shift.date && shift.date.includes('/')) {
+                const parts = shift.date.split('/');
+                shift.date = `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+            }
             // 驗證必填欄位
             if (shift.employeeId && shift.date && shift.shiftType) {
                 data.push(shift);
