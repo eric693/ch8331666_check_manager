@@ -699,7 +699,7 @@ function createShiftItem(shift) {
     const startTime = formatTimeOnly(shift.startTime);
     const endTime = formatTimeOnly(shift.endTime);
     
-    const actionButtons = isAdmin ? `
+    const actionButtons = (isAdmin || isScheduler) ? `
         <div class="shift-actions">
             <button class="btn-icon" onclick="editShift('${shift.shiftId}')">${t('BTN_EDIT')}</button>
             <button class="btn-icon btn-danger" onclick="deleteShift('${shift.shiftId}')">${t('BTN_DELETE')}</button>
