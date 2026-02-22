@@ -1918,35 +1918,38 @@ function formatDateYMD(date) {
  * - Date 物件 → "HH:MM"
  */
 function formatTimeOnly(timeValue) {
-    if (!timeValue) return '--:--';
+    // ⭐ 修正：改用 == null 而非 !timeValue，避免 0 被當成 false
+    if (timeValue == null || timeValue === '') return '00:00';
     
-    // 如果已經是 HH:MM 格式,直接返回
+    // 已經是 HH:MM 格式
     if (typeof timeValue === 'string' && /^\d{2}:\d{2}$/.test(timeValue)) {
         return timeValue;
     }
     
-    // 如果是 ISO 格式字串
+    // ⭐ 新增：處理 "0:00" 或 "0" 這種格式
+    if (typeof timeValue === 'string' && /^\d{1}:\d{2}$/.test(timeValue)) {
+        return '0' + timeValue; // "0:00" → "00:00"
+    }
+    
+    // ISO 格式字串
     if (typeof timeValue === 'string' && timeValue.includes('T')) {
         try {
             const date = new Date(timeValue);
-            // 轉換為台灣時間 (UTC+8)
             const hours = String(date.getUTCHours() + 8).padStart(2, '0');
             const minutes = String(date.getUTCMinutes()).padStart(2, '0');
             return `${hours}:${minutes}`;
         } catch (e) {
-            console.error('時間格式錯誤:', timeValue);
-            return '--:--';
+            return '00:00';
         }
     }
     
-    // 如果是 Date 物件
+    // Date 物件
     if (timeValue instanceof Date) {
         const hours = String(timeValue.getHours()).padStart(2, '0');
         const minutes = String(timeValue.getMinutes()).padStart(2, '0');
         return `${hours}:${minutes}`;
     }
     
-    // 其他情況直接返回
     return String(timeValue);
 }
 
