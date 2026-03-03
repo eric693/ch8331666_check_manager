@@ -528,7 +528,19 @@ async function _doLoadPendingOvertime() {
         const res = await callApifetch('getPendingOvertime');
         requestsLoading.style.display = 'none';
         if (res.ok && res.requests && res.requests.length > 0) {
-            renderPendingOvertimeRequests(res.requests, requestsList);
+            // ✅ 前端去重：同一個 rowNumber 只保留一筆
+            const seen = new Set();
+            const uniqueRequests = res.requests.filter(req => {
+                const key = req.rowNumber || (req.overtimeDate + '_' + req.startTime + '_' + req.employeeId);
+                if (seen.has(key)) {
+                    console.warn('⚠️ 過濾重複記錄:', key);
+                    return false;
+                }
+                seen.add(key);
+                return true;
+            });
+            console.log(`載入待審核: 原始 ${res.requests.length} 筆 → 去重後 ${uniqueRequests.length} 筆`);
+            renderPendingOvertimeRequests(uniqueRequests, requestsList);
         } else {
             requestsEmpty.style.display = 'block';
         }
