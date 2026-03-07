@@ -2,7 +2,7 @@
 
 const API_CONFIG = {
   // 正式環境的 API URL
-  apiUrl: "https://script.google.com/macros/s/AKfycbxXT9tkY2QKWEObOGxm0_VA-DiruYmoebOuPrkip7lwWfd9I3P3qqjNOaORtC1xsHwt/exec",
+  apiUrl: "https://script.google.com/macros/s/AKfycbw0sgWa8d4FTBg-PV6T6L_9qEt-Bdg8Lkc9jrFewdt_kKzBBdTtg1EOpyUfuciTfdI_Vg/exec",
   
   // 新增回呼網址
   redirectUrl: "https://eric693.github.io/an_check_manager/"
